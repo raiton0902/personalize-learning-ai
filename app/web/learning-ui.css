@@ -1,0 +1,3 @@
+.history-picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:18px 0}.history-picker select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:9px 12px;border-radius:10px;max-width:100%}.learning-review .back-to-lesson{background:transparent;color:var(--muted);margin:0;padding:8px 0}.language-repair{padding:12px 0}.language-repair p{font-size:14px}.language-repair button{background:var(--surface-raised);color:var(--ink)}.generating-learning .thinking-indicator{margin:24px 0}.generation-error{color:var(--muted)}
+
+.history-picker select:focus{outline:none}.history-picker select:focus-visible{outline:2px solid var(--muted);outline-offset:3px}
