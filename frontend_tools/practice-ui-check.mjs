@@ -1,0 +1,63 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({channel:'chrome',headless:true});
+try {
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(15000);
+ const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('PAGE ERROR',e.message)});page.on('response',async r=>{if(r.status()>=400)console.log('HTTP',r.status(),r.url(),await r.text())});
+ await page.goto('http://127.0.0.1:8781');
+ await page.getByRole('button',{name:'Sign up',exact:true}).click();
+ await page.getByLabel('Email',{exact:true}).fill('chat-'+Date.now()+'@example.test');
+ await page.getByLabel('Password',{exact:true}).fill('chat-test-password');
+ await page.getByLabel('Password',{exact:true}).press('Enter');
+ await page.locator('.avatar').waitFor();
+ await page.getByRole('button',{name:'Close learning pattern'}).click();
+ await page.getByLabel('Learning goal',{exact:true}).fill('Learn Python variables');
+ await page.getByLabel('Learning goal',{exact:true}).press('Enter');
+ await page.getByRole('button',{name:'Accept this plan',exact:true}).click();
+ await page.getByRole('button',{name:'Teach me this idea',exact:true}).click();
+ await page.waitForFunction(()=>!pendingRequests.size,null,{timeout:15000});
+
+ await page.waitForFunction(()=>!pendingRequests.size);
+ const ref=await page.locator('.source-line').boundingBox();
+ const left=await page.locator('.source-line>p').boundingBox(),right=await page.getByRole('button',{name:'View source',exact:true}).boundingBox();
+ assert(Math.abs(left.y+left.height/2-right.y-right.height/2)<2);
+ assert.equal(await page.getByRole('button',{name:'Save explanation to Library'}).count(),0);
+ const notes=await page.evaluate(async()=>await api('/api/resources'));assert.equal(notes.resources.length,1);
+ await page.getByRole('button',{name:'Try a practice problem',exact:true}).click();
+ await page.waitForFunction(()=>!pendingRequests.size);
+ await page.getByLabel('Your answer',{exact:true}).fill('3');
+ await page.getByLabel('Show your reasoning',{exact:true}).fill('I read the assignment.');
+ await page.getByRole('button',{name:'Attach reasoning',exact:true}).click();
+ assert(await page.getByRole('button',{name:'Upload file',exact:true}).isVisible());
+ await page.getByRole('button',{name:'Upload file',exact:true}).click();
+ await page.getByLabel('Reasoning attachment',{exact:true}).setInputFiles({name:'work.md',mimeType:'text/markdown',buffer:Buffer.from('x = 3')});
+ await page.getByRole('button',{name:'work.md',exact:true}).waitFor();
+ await page.getByRole('button',{name:'work.md',exact:true}).click();
+ assert((await page.locator('#dialog-body').innerText()).includes('x = 3'));await page.locator('#done').click();
+ await page.getByRole('button',{name:'Attach reasoning',exact:true}).click();
+ assert.equal(await page.locator('.image-outline').evaluate(n=>getComputedStyle(n).color),'rgb(227, 74, 203)');
+ await page.getByRole('button',{name:'Upload image',exact:true}).click();
+ await page.getByLabel('Reasoning attachment',{exact:true}).setInputFiles('app/local_results/reasoning-test.png');
+ await page.getByRole('button',{name:'reasoning-test.png',exact:true}).waitFor({timeout:60000});
+ assert.equal(await page.locator('.reasoning-chip').count(),2);
+ for(const theme of ['dark','light']){
+  await page.evaluate(theme=>{themeChoice=theme;applyTheme()},theme);await page.waitForTimeout(200);
+  await page.getByRole('button',{name:'Submit',exact:true}).click();
+  await page.getByRole('heading',{name:'Are you sure you want to submit?',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>currentState.stage),'attempt');
+  const orange=await page.locator('.confirm-attempt').evaluate(n=>getComputedStyle(n).backgroundColor);
+  assert.equal(orange,'rgb(195, 84, 14)');
+  await page.screenshot({path:'app/local_results/attempt-confirm-'+theme+'.png'});
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  assert.equal(await page.getByLabel('Your answer',{exact:true}).inputValue(),'3');
+  assert.equal(await page.locator('.reasoning-chip').count(),2);
+ }
+ await page.getByRole('button',{name:'Submit',exact:true}).click();await page.locator('.confirm-attempt').click();
+ await page.getByRole('button',{name:'Next objective',exact:true}).waitFor();
+ const state=await page.evaluate(()=>currentState);
+ assert(state.attempt.work.includes('x = 3')&&state.attempt.work.includes('subtract 5'));
+ const resources=await page.evaluate(async()=>await api('/api/resources'));assert.equal(resources.resources.length,1);
+ assert.deepEqual(errors,[]);
+ console.log('Passed source alignment, auto Library, document/image attachment + live local OCR, magenta icon, extracted-text preview, orange confirmation/cancel, both themes and assessment context (model fixture).');
+} finally {await browser.close()}

@@ -2,9 +2,13 @@
 
 **For our three-person team · Written 17 October 2026**
 
+**Integration update, 25 October:** The approved browser interface is integrated into `app/web_server.py` + `app/web/`, with real local accounts, account-owned Library/history, document and public-URL intake, flexible general courses and the existing checked algebra tutor. The Streamlit build is preserved. Google OAuth and audio/video transcription have implemented integration paths but require the owner's external credentials. See [integration setup](docs/INTEGRATION.md) and [change record](CHANGELOG.md). This expands the earlier first-build scope at the owner's explicit request; it does not claim hosting or external acceptance testing is complete.
+
+**Homepage revision, 25 October:** implemented the requested larger translucent input/title, true-black blue/crimson palette, restrained background motion, and click-to-open/scroll customization. Verified 19 browser checks plus the existing 46 tests; see [homepage QA](docs/HOMEPAGE_QA.md). This changes the visual candidate, not the remaining learner/hosting/submission milestones.
+
 Read [PROJECT_BRIEF.md](PROJECT_BRIEF.md) for the product idea. Use this file as the working checklist. Checked items record verified progress; unchecked items remain planned work.
 
-**Status, 19 October 2026:** Milestone 2A is verified locally. The browser's Start learning button displays the seed equation. Packages, a pinned dependency snapshot, ignored local `.env`, and the Nebius helper/CLI are prepared; 14 offline connection tests pass. No live inference request has been made. Milestone 2B is waiting for the user's account setup, key, exact available Nemotron model ID, and agreed usage budget. See [README](README.md) for the handoff. The helper is not yet wired into a browser request button.
+**Status, 25 October 2026:** A local Streamlit test build now implements reference intake, model-generated curriculum approval, the teaching/diagnostic/repair loop, editable preferences/observations, SQLite persistence, bounded review, and Markdown checkpoints. A live wrong-attempt-to-changed-question flow completed and restored after an actual server restart. Source parser and offline/UI tests pass; see [local QA report](docs/LOCAL_QA.md) for exact coverage and remaining checks. Current total estimated inference spend: $0.00317052 across 22 calls, under the $2 development allowance. Human learner testing, final design feedback, judge hosting/access, and submission remain pending.
 
 **Our first target:** a learner approves a small math curriculum, tries a problem, receives help for the actual missing step, and can resume later with their progress preserved.
 
@@ -14,7 +18,7 @@ Work through one milestone at a time. Check its “done” condition before addi
 
 1. [x] Choose the first learner group and three connected math topics: classmates who know arithmetic but struggle with equations; linear equations → substitution → points on a line. Selected 18 October 2026.
 2. [x] Prepare one short reference and six checked questions, including two possible causes of a wrong answer: see [reference](app/sample_materials/course_reference.md) and [questions and solutions](app/sample_materials/questions_and_solutions.md).
-3. [ ] Run a blank Streamlit app and make one real Nemotron call through Nebius Token Factory.
+3. [x] Run Streamlit and verify live Nemotron inference, including the integrated lesson/repair flow.
 
 You do not need a finished design, archive importer, or large question bank to complete these tasks.
 
@@ -81,7 +85,7 @@ Use one model initially. Select its exact ID from the current Token Factory cata
 
 For the point-on-line task, possible causes include confusing x and y, substituting incorrectly, or making an arithmetic error. A diagnostic prompt can ask: “For the point (3, 8), what are x and y? Then substitute x into 2x + 2 and show your calculation.” These are candidate explanations to investigate, not conclusions to assume from a wrong answer.
 
-**Next build task:** run the blank Streamlit app and make one real Nemotron call (Milestone 2). The reference and six-question starter set are prepared. Confirm the scope with teammates and recruit two or three testers; Milestone 1 still requires team agreement and tester outreach.
+**Next team task:** try the local build using [the test guide](docs/LOCAL_TEST_GUIDE.md), give design feedback, and recruit two or three testers. Automated PDF upload was blocked by the browser extension permission, so complete the manual upload check. Team agreement and learner testing are not yet verified.
 
 ## Milestone 2 — Run the app and connect the model
 
@@ -110,12 +114,12 @@ The environment keeps project packages separate. `openai` is the compatible clie
 
 ### 2B. Make one live AI request
 
-- [ ] Verify Token Factory account access, balance, billing behavior, and available Nemotron models. Agree on an out-of-pocket budget before enabling paid usage.
-- [ ] Fill `.env` with `NEBIUS_API_KEY` and the available `NEBIUS_MODEL`. Blank `.env` and `.env.example` are prepared; live calls default to disabled.
+- [x] User supplied the model/key and account-balance screenshot; authorized development within $2. Live model access verified. Actual remaining balance, credit expiry, and provider charging remain account-side checks; the local meter is not a provider-enforced cap.
+- [x] Fill ignored `.env` with `NEBIUS_API_KEY` and `NEBIUS_MODEL=nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`. Restore empty placeholders in tracked `.env.example`; live calls default to disabled.
 - [x] Add `.env`, `.venv/`, database files, private uploads, and caches to `.gitignore`; verified with `git check-ignore`.
 - [x] Prepare `llm.py` with `https://api.tokenfactory.nebius.com/v1/`, environment-loaded credentials, and model ID. Offline transport tests pass; actual model access remains unverified.
-- [ ] Ask one short math question. Record the model ID, response time, and token usage when returned. Never print the key.
-- [ ] Add the browser error/retry path and prevent duplicate requests. The helper already has a 60-second timeout, 512-token limit, safe errors, and no automatic retries; browser integration remains pending.
+- [x] Ask one short math question. Verified x=4; exact model ID, 2.985-second response time, and usage recorded. Nine more constrained probes succeeded; see the model-check report.
+- [x] Add browser errors and manual retry with preserved work; guard duplicate requests with a SQLite lease and stale-tab revision checks. Requests have a 60-second timeout, 512–2048 output-token bounds, and no automatic retries. Nano reasoning output is disabled for these short course calls.
 - [x] Pin installed package versions in `app/requirements.txt`. `pip check` and 14 offline tests pass; live compatibility remains unverified.
 
 **Done:** the app displays a real Nemotron response. An API failure shows a useful message and does not erase the learner's work.
@@ -126,9 +130,9 @@ Keep the first request small and check balance afterward. Promotional credit is 
 
 **Goal:** progress survives a restart before we build much tutoring logic.
 
-- [ ] Add a form for goal, starting level, preferred language/tone, one interest, and school/exam context if relevant.
-- [ ] Offer a fresh profile; history is never required.
-- [ ] Create `storage.py` using SQLite. Save these records with learner/course IDs:
+- [x] Add a form for goal, starting level, preferred language/tone, one interest, and school/exam context if relevant.
+- [x] Offer a fresh profile; history is never required.
+- [x] Create `storage.py` using SQLite. Save these records with learner/course IDs:
 
 | Record | Minimum contents |
 |---|---|
@@ -139,8 +143,8 @@ Keep the first request small and check balance afterward. Promotional credit is 
 | Progress | Current objective, pending question, next step |
 | Review | Concept ID, taught flag, last review, next due date, outcome |
 
-- [ ] Save the profile, stop the server, restart, and reopen it.
-- [ ] Use separate test learner IDs. A second browser/user must not inherit the first learner's records.
+- [x] Save the profile, stop the server, restart, and reopen it.
+- [x] Use separate test learner IDs. A second browser/user must not inherit the first learner's records.
 
 **Done:** the profile survives restart and two test learners remain separate. For a public service, add real access control or restrict the demo to non-sensitive disposable profiles before allowing personal uploads.
 
@@ -148,13 +152,13 @@ Keep the first request small and check balance afterward. Promotional credit is 
 
 **Goal:** users see and approve what they are about to study.
 
-- [ ] Add “Paste reference,” “Upload PDF,” and “I have no reference.”
+- [x] Add “Paste reference,” “Upload PDF,” and “I have no reference.”
 - [ ] Keep the first upload small. Show extracted text/pages so users can spot bad extraction. Ask for pasted text if a PDF is scanned or unreadable.
-- [ ] For no-reference users, use our bundled sourced course. Explain its scope and ask whether it matches their purpose; do not claim school approval.
-- [ ] Ask the model for a structured curriculum: objectives, prerequisites, source IDs/sections, sequence, and estimated effort. Validate its fields and referenced IDs.
-- [ ] Show an editable preview. Ask whether the scope, order, and depth fit the school/course or personal goal.
-- [ ] Add “Request changes” and “Accept curriculum.” Save acceptance against that version.
-- [ ] Block lesson generation until that version is accepted. Require acceptance again for material scope changes, not ordinary explanation adjustments.
+- [x] For no-reference users, use our bundled sourced course. Explain its scope and ask whether it matches their purpose; do not claim school approval.
+- [x] Ask the model for a structured curriculum: objectives, prerequisites, source IDs/sections, sequence, and estimated effort. Validate its fields and referenced IDs.
+- [x] Show an editable preview. Ask whether the scope, order, and depth fit the school/course or personal goal.
+- [x] Add “Request changes” and “Accept curriculum.” Save acceptance against that version.
+- [x] Block lesson generation until that version is accepted. Require acceptance again for material scope changes, not ordinary explanation adjustments.
 - [ ] Offer Markdown export once; “Continue without download” moves on immediately.
 
 **Done:** users can edit and approve a plan; refreshing cannot accidentally bypass approval. Sources are visible, and unsupported school alignment is flagged.
@@ -163,14 +167,14 @@ Keep the first request small and check balance afterward. Promotional credit is 
 
 **Goal:** finish one meaningful learning interaction before building a whole course.
 
-- [ ] Retrieve the accepted objective, relevant source excerpt, learner preferences, and current progress.
-- [ ] Generate a concrete explanation with a worked step and its reason. Use the chosen interest only when the mapping is accurate.
-- [ ] Present a checked seed question. Wait for the attempt; keep the reference answer out of the learner-facing prompt until feedback is appropriate.
-- [ ] Check supported numerical answers with code, including units/tolerance where relevant. Never execute arbitrary learner text as Python.
-- [ ] Have the model assess the reasoning and list a possible gap with supporting evidence. Keep ambiguous cases marked uncertain.
-- [ ] If two causes fit, ask a small diagnostic question before choosing the repair. Explain directly when the learner lacks the prerequisite.
-- [ ] Give the repair, then a different checked question testing the same idea.
-- [ ] Save both attempts and help used. Distinguish “followed a demonstration” from “solved independently.”
+- [x] Retrieve the accepted objective, relevant source excerpt, learner preferences, and current progress.
+- [x] Generate a concrete explanation with a worked step and its reason. Use the chosen interest only when the mapping is accurate.
+- [x] Present a checked seed question. Wait for the attempt; keep the reference answer out of the learner-facing prompt until feedback is appropriate.
+- [x] Check supported numerical answers with code, including units/tolerance where relevant. Never execute arbitrary learner text as Python.
+- [x] Have the model assess the reasoning and list a possible gap with supporting evidence. Keep ambiguous cases marked uncertain.
+- [x] If two causes fit, ask a small diagnostic question before choosing the repair. Explain directly when the learner lacks the prerequisite.
+- [x] Give the repair, then a different checked question testing the same idea.
+- [x] Save both attempts and help used. Distinguish “followed a demonstration” from “solved independently.”
 
 **Done:** an incorrect attempt leads to a justified diagnostic/repair, then a changed problem. A correct answer and an uncertain assessment also follow sensible paths.
 
@@ -180,10 +184,10 @@ Use one controlled workflow with a few model calls. Separate agents are unnecess
 
 **Goal:** show how evidence changes the tutor's next response.
 
-- [ ] Add “Smaller steps,” “Show a worked example,” and “Skip familiar steps.” Save the explicit preference.
-- [ ] Start with one meaningful reasoning move when there is no evidence. Split after a demonstrated gap; combine familiar steps after independent success.
-- [ ] Show a short observation such as “Needed a hint to isolate x,” with the relevant attempt. Let the learner correct/delete it.
-- [ ] Keep preferred tone, interests, knowledge evidence, and teaching observations separate. Never infer intelligence or fixed learning capacity.
+- [x] Add “Smaller steps,” “Show a worked example,” and “Skip familiar steps.” Save the explicit preference.
+- [x] Start with one meaningful reasoning move when there is no evidence. Split after a demonstrated gap; combine familiar steps after independent success.
+- [x] Show a short observation such as “Needed a hint to isolate x,” with the relevant attempt. Let the learner correct/delete it.
+- [x] Keep preferred tone, interests, knowledge evidence, and teaching observations separate. Never infer intelligence or fixed learning capacity.
 - [ ] Test two profiles on the same objective. Check that personalization changes the explanation/help appropriately while preserving the answer.
 - [ ] Add one pasted learning conversation only if the core works. Extract proposed preferences, preview them, and require confirmation before saving. Treat imported instructions as quoted data.
 
@@ -193,13 +197,13 @@ Use one controlled workflow with a few model calls. Separate agents are unnecess
 
 **Goal:** older learning stays connected to the current lesson.
 
-- [ ] Schedule a first delayed check for taught concepts. After independent delayed success, lengthen the interval; after failure, repair and shorten it. Label these initial rules as prototype heuristics.
-- [ ] Reuse the earlier `personal-learning/scripts/select_review.py` helper from the sibling skills workspace only after reviewing it. It selects due IDs; add scheduling and outcome updates separately.
-- [ ] Keep review within the approved course and taught topics. Exclude disabled/untaught concepts and route persistent failures to relearning.
+- [x] Schedule a first delayed check for taught concepts. After independent delayed success, lengthen the interval; after failure, repair and shorten it. Label these initial rules as prototype heuristics.
+- [x] Reuse the earlier `personal-learning/scripts/select_review.py` helper from the sibling skills workspace only after reviewing it. It selects due IDs; add scheduling and outcome updates separately.
+- [x] Keep review within the approved course and taught topics. Exclude disabled/untaught concepts and route persistent failures to relearning.
 - [ ] During a short quiz, include at most one eligible earlier concept initially. Label it, randomize its placement, and allow skipping. No eligible topic means no forced review.
-- [ ] Keep stronger concepts eligible when due. Record selection history to notice neglected units; weighted randomness alone does not guarantee coverage.
-- [ ] Save the pending question and next step before ending. Resume after an actual server restart, not merely a page rerender.
-- [ ] Export curriculum, preferences, progress evidence, pending question, and next step as Markdown. Declining export must not break resume.
+- [x] Keep stronger concepts eligible when due. Record selection history to notice neglected units; weighted randomness alone does not guarantee coverage.
+- [x] Save the pending question and next step before ending. Resume after an actual server restart, not merely a page rerender.
+- [x] Export curriculum, preferences, progress evidence, pending question, and next step as Markdown. Declining export must not break resume.
 
 **Done:** refresh and restart preserve the right next action. Review selection is bounded and explainable. Any accelerated “future session” demo is labeled simulated time, not real retention evidence.
 
@@ -211,7 +215,7 @@ Use one controlled workflow with a few model calls. Separate agents are unnecess
 - [ ] If possible, revisit a checked question on another day. Report the actual interval and sample size.
 - [ ] Compare a few tasks with a basic tutor given the same source, time, and comparable questions. Use this as an exploratory check, not a broad scientific claim.
 - [ ] Record correctness, hints, mistaken diagnoses, resume failures, response time, and usage/cost. Write down failures as well as successes.
-- [ ] Fix blockers before adding features. Keep a small reproducible test set for approval, state restoration, isolation, and review eligibility.
+- [x] Fix blockers before adding features. Keep a small reproducible test set for approval, state restoration, isolation, and review eligibility.
 
 Run these acceptance checks:
 

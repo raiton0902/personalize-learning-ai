@@ -1,0 +1,59 @@
+{
+  "checks": [
+    "Correctable sample observation",
+    "Wrong correction focus, Enter submission, fixed changed answer, independent evidence",
+    "Hint use changes evidence",
+    "Editable intent no generation; existing reference preserves goal",
+    "Search empty recovery and side panel restriction",
+    "Six viewport widths without overflow",
+    "Reduced motion and retained text-input panel",
+    "Dirty pattern Keep editing and Save protect changes",
+    "Saved question reopen, scoped follow-up and assistant loading",
+    "Static sample checkpoint download",
+    "Upload error state retains recovery action"
+  ],
+  "errors": [],
+  "external": [],
+  "accessibility": [
+    {
+      "name": "stuck-dark",
+      "violations": []
+    },
+    {
+      "name": "independent",
+      "violations": []
+    },
+    {
+      "name": "evidence",
+      "violations": []
+    },
+    {
+      "name": "repair-light",
+      "violations": []
+    },
+    {
+      "name": "home-light",
+      "violations": []
+    },
+    {
+      "name": "reuse-dialog",
+      "violations": []
+    },
+    {
+      "name": "library",
+      "violations": []
+    },
+    {
+      "name": "phone-dark",
+      "violations": []
+    },
+    {
+      "name": "phone-pattern",
+      "violations": []
+    },
+    {
+      "name": "phone-light",
+      "violations": []
+    }
+  ]
+}

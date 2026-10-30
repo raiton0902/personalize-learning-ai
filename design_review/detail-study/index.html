@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Interactive Personal Learning interface preview. Sample content and simulated responses only.">
+  <title>Personal Learning · Detailed interface preview</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M0 0h24v24H0z'/%3E%3Cpath fill='none' stroke='%23a5d9f4' stroke-width='1.5' d='M4 5h7v15H4zM13 5h7v15h-7z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="learning.css">
+  <link rel="stylesheet" href="motion.css">
+  <link rel="stylesheet" href="refinements.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to learning</a>
+  <div class="preview-bar"><span>Sample preview <span class="preview-detail">/ Interface study · Simulated responses</span></span><div><button id="preview-states">Preview states</button><button id="about">What changed?</button></div></div>
+  <nav class="rail" aria-label="Workspace">
+    <button data-route="home" aria-label="Home" data-tip="Home"></button>
+    <button data-route="library" aria-label="Library" data-tip="Library"></button>
+    <button data-route="activity" aria-label="Activity" data-tip="Activity"></button>
+    <div class="rail-bottom"><button id="theme" aria-label="Switch to light theme" data-tip="Theme"></button><button id="account" class="avatar" aria-label="Preview account" data-tip="Preview account">AL</button></div>
+  </nav>
+  <aside class="sidebar" aria-label="Learning history">
+    <div class="sidebar-title"><strong>Personal Learning</strong><button id="collapse-sidebar" class="icon" aria-label="Close sidebar"></button></div>
+    <nav class="mobile-workspace-nav" aria-label="Mobile workspace"><button data-route="home">Home</button><button data-route="library">Library</button><button data-route="activity">Activity</button></nav>
+    <button id="new-learning" class="new-learning"></button>
+    <div class="field-shell search-shell"><span id="search-icon"></span><input id="history-search" type="search" aria-label="Search learning" placeholder="Search learning"></div>
+    <div class="history-label">Your learning</div><div id="history"></div>
+  </aside>
+  <button id="nav-scrim" aria-label="Close navigation" hidden></button>
+  <main id="main" tabindex="-1">
+    <header class="workspace-header"><div><button id="open-sidebar" class="icon" aria-label="Open sidebar"></button><span id="page-label">Algebra foundations</span></div><div class="header-tools"><button id="mobile-theme" class="icon" aria-label="Switch to light theme"></button><button id="personalize" class="quiet" aria-label="Personalize"></button></div></header>
+    <div id="content"></div>
+  </main>
+  <button id="panel-scrim" aria-label="Close learning pattern overlay" hidden></button>
+  <aside id="pattern" class="pattern" aria-labelledby="pattern-heading" hidden>
+    <div class="panel-header"><h2 id="pattern-heading" tabindex="-1">Your learning pattern</h2><button id="close-pattern" class="icon" aria-label="Close learning pattern"></button></div>
+    <form id="preferences">
+      <div class="course-field field"><label for="struggle">Where are you stuck?</label><div class="field-shell"><textarea id="struggle" placeholder="Tell me which step feels difficult."></textarea></div></div>
+      <div class="scope">Across your learning</div>
+      <div class="field"><label for="style">Teaching style</label><div class="field-shell"><textarea id="style" placeholder="One example, then let me try."></textarea></div></div>
+      <div class="field"><label for="interests">Interests</label><div class="field-shell"><input id="interests" placeholder="Games, music, football…"></div></div>
+      <div class="scope course-field">This learning</div>
+      <div class="course-field field"><label for="context">Course or exam</label><div class="field-shell"><input id="context" placeholder="A course, exam, or deadline"></div></div>
+      <div class="course-field language"><button type="button" id="language-toggle" aria-expanded="false" aria-controls="language-editor"><span>Language: <strong id="language-label">Automatic</strong></span><span class="language-chevron"></span></button><div id="language-editor" hidden><label for="language-input">Reply language</label><div class="field-shell"><input id="language-input" placeholder="Type a language"></div><div class="language-actions"><button type="button" id="language-auto">Use automatic</button><button type="button" id="language-apply" class="secondary">Apply</button></div></div></div>
+      <button id="save-pattern" class="save-button" type="submit" disabled>Saved</button><div id="pattern-error"></div>
+    </form>
+  </aside>
+  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title"></h2><button id="close-dialog" class="icon" aria-label="Close dialog"></button></div><div id="dialog-content"></div></dialog>
+  <div id="live-announcement" class="sr-only" role="status" aria-live="polite"></div>
+  <script src="navigation.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

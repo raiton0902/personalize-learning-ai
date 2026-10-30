@@ -1,0 +1,79 @@
+{
+  "checks": [
+    "Rapid close/reopen settles both sidebars at their correct position",
+    "Preference scope, dirty navigation, discard/save, language and sample support",
+    "Pending reply does not hijack navigation; Library filtering/empty state",
+    "New-learning global-only panel, empty send, menu keyboard, link errors, source removal, plan approval",
+    "Error retains draft, Edit works, off-topic No preserves saved messages",
+    "Upload loading/errors, reasoning attachment, submit confirmation, sample assessment/completion, three real sample downloads",
+    "Saved review preserves practice; responsive widths; mobile drawers/focus; light/dark; reduced motion"
+  ],
+  "errors": [],
+  "externalRequests": [],
+  "accessibility": [
+    {
+      "name": "lesson-dark",
+      "violations": []
+    },
+    {
+      "name": "lesson-light",
+      "violations": []
+    },
+    {
+      "name": "unsaved-dialog",
+      "violations": []
+    },
+    {
+      "name": "library",
+      "violations": []
+    },
+    {
+      "name": "reply-error",
+      "violations": []
+    },
+    {
+      "name": "upload-error",
+      "violations": []
+    },
+    {
+      "name": "practice-light",
+      "violations": []
+    },
+    {
+      "name": "mobile-dark",
+      "violations": []
+    },
+    {
+      "name": "mobile-navigation",
+      "violations": []
+    },
+    {
+      "name": "mobile-chat-light",
+      "violations": []
+    }
+  ],
+  "protectedApplicationFiles": 65,
+  "changedApplicationFiles": [],
+  "screenshotFiles": [
+    "activity-dark.png",
+    "complete-dark.png",
+    "diagnostic-loading.png",
+    "home-dark.png",
+    "lesson-dark.png",
+    "lesson-light.png",
+    "library-empty.png",
+    "mobile-chat-light.png",
+    "mobile-dark.png",
+    "mobile-pattern.png",
+    "mobile-reduced-motion.png",
+    "plan-loading.png",
+    "practice-dark.png",
+    "practice-light.png",
+    "reference-menu.png",
+    "reply-error.png",
+    "reply-loading.png",
+    "unsaved-dark.png",
+    "upload-error.png",
+    "upload-reading.png"
+  ]
+}

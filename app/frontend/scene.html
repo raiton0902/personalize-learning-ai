@@ -1,0 +1,34 @@
+<div id="home-scene" aria-hidden="true">
+  <svg class="current current-blue" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="ice-current" x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#3383ce" stop-opacity="0"/>
+        <stop offset=".48" stop-color="#73beed" stop-opacity=".75"/>
+        <stop offset=".75" stop-color="#b7eaff" stop-opacity=".6"/>
+        <stop offset="1" stop-color="#3383ce" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="ice-haze"><feGaussianBlur stdDeviation="32"/></filter>
+    </defs>
+    <path class="current-haze" d="M-180 240 C250 240 -30 800 670 800" stroke="url(#ice-current)" stroke-width="135" filter="url(#ice-haze)"/>
+    <path class="current-line" d="M-180 240 C250 240 -30 800 670 800" stroke="url(#ice-current)" stroke-width="2"/>
+    <path class="current-line" d="M-200 320 C180 300 80 850 700 870" stroke="url(#ice-current)" stroke-width="1" opacity=".7"/>
+  </svg>
+  <svg class="current current-red" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="crimson-current" x1="1" y1="0" x2="0" y2="1">
+        <stop stop-color="#8d173b" stop-opacity="0"/>
+        <stop offset=".45" stop-color="#ed3e65" stop-opacity=".68"/>
+        <stop offset=".75" stop-color="#e97795" stop-opacity=".48"/>
+        <stop offset="1" stop-color="#8d173b" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="crimson-haze"><feGaussianBlur stdDeviation="32"/></filter>
+    </defs>
+    <path class="current-haze" d="M1780 280 C1350 200 1600 790 940 830" stroke="url(#crimson-current)" stroke-width="140" filter="url(#crimson-haze)"/>
+    <path class="current-line" d="M1780 280 C1350 200 1600 790 940 830" stroke="url(#crimson-current)" stroke-width="2"/>
+    <path class="current-line" d="M1810 380 C1450 260 1530 850 920 900" stroke="url(#crimson-current)" stroke-width="1" opacity=".65"/>
+  </svg>
+  <div class="current-scrim"></div>
+</div>
+<div class="home-nav">
+  <span class="home-wordmark">Personal Learning</span>
+</div>

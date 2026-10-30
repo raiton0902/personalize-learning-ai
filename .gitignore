@@ -12,3 +12,5 @@ uploads/
 private_uploads/
 local_results/
 .streamlit/secrets.toml
+node_modules/
+.shots/

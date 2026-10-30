@@ -1,0 +1,39 @@
+{
+  "rows": 188,
+  "attachment_chip": [
+    [
+      "dark",
+      1440,
+      true
+    ],
+    [
+      "dark",
+      1024,
+      true
+    ],
+    [
+      "dark",
+      390,
+      true
+    ],
+    [
+      "light",
+      1440,
+      true
+    ],
+    [
+      "light",
+      1024,
+      true
+    ],
+    [
+      "light",
+      390,
+      true
+    ]
+  ],
+  "walkthrough_steps": {
+    "dark": 13,
+    "light": 13
+  }
+}

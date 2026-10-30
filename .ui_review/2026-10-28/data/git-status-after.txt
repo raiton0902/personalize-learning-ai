@@ -1,0 +1,49 @@
+ M .gitignore
+ M BUILD_PLAN.md
+ M README.md
+ M app/.env.example
+ M app/app.py
+ M app/llm.py
+ M app/requirements.txt
+ M app/tests/test_llm.py
+?? .jury/
+?? .ui_review/
+?? AGENTS.md
+?? CHANGELOG.md
+?? DESIGN.md
+?? app/.streamlit/
+?? app/checkpoints.py
+?? app/content.py
+?? app/episode_helpers.py
+?? app/frontend/
+?? app/homepage.py
+?? app/language_rules.py
+?? app/learning_history.py
+?? app/live_checks.py
+?? app/ocr_image.ps1
+?? app/question_chats.py
+?? app/question_matching.py
+?? app/reasoning_files.py
+?? app/references.py
+?? app/review.py
+?? app/review_selector.py
+?? app/schemas.py
+?? app/storage.py
+?? app/styles.css
+?? app/tests/conftest.py
+?? app/tests/test_pdf.py
+?? app/tests/test_personal_learning.py
+?? app/tests/test_ui.py
+?? app/tests/test_usage.py
+?? app/tests/test_web.py
+?? app/tests/test_workflow.py
+?? app/tutor.py
+?? app/usage.py
+?? app/web/
+?? app/web_server.py
+?? app/web_store.py
+?? app/web_tutor.py
+?? design_review/
+?? docs/
+?? frontend_tools/
+?? ui_improvement_proposal.md

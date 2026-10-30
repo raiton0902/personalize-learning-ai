@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <g fill="none" stroke="#8fd4f7" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M16 8.5C12.8 6.2 9.1 6.1 4.5 7.3v16.2c4.6-1.2 8.3-1.1 11.5 1.2 3.2-2.3 6.9-2.4 11.5-1.2V7.3C22.9 6.1 19.2 6.2 16 8.5Z"/>
+    <path d="M16 8.5v16.2"/>
+  </g>
+  <g fill="#ed3e65" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="13" font-weight="bold" text-anchor="middle">
+    <text x="10.1" y="19.9">x</text><text x="21.9" y="19.9">y</text>
+  </g>
+</svg>

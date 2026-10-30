@@ -1,0 +1,24 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const p=await browser.newPage({viewport:{width:1440,height:1000},colorScheme:'dark'});
+const errors=[];p.on('pageerror',e=>errors.push(e.message));
+await p.goto('http://127.0.0.1:8765');await p.waitForTimeout(1800);
+assert(await p.locator('.guest-notebook svg').isVisible()); assert.equal(await p.locator('.icon-rail [data-view="search"]').count(),0); assert.equal(await p.locator('.workspace-links').count(),0); await p.evaluate(()=>document.fonts.ready); assert(await p.evaluate(()=>document.fonts.check('14px \"Inter Preview\"')));
+await p.screenshot({path:'design_review/guest-notebook.png'});
+assert.equal(await p.locator('html').getAttribute('data-ui-theme'),'dark'); await p.getByRole('button',{name:'Switch to light theme',exact:true}).click();
+assert.equal(await p.locator('html').getAttribute('data-ui-theme'),'light');
+await p.screenshot({path:'design_review/guest-light.png'});
+await p.getByRole('button',{name:'Sign up',exact:true}).click();assert(await p.locator('.google-logo').isVisible()); await p.screenshot({path:'design_review/auth.png'}); await p.getByRole('button',{name:'Preview signed-in experience'}).click();await p.waitForTimeout(300);
+assert.equal(await p.locator('.guest-notebook').count(),0);assert(await p.locator('.right-panel').isVisible());
+await p.screenshot({path:'design_review/workspace-light.png'});
+await p.getByRole('button',{name:'Account menu'}).click();await p.getByRole('button',{name:'Switch to dark theme',exact:true}).click(); assert(!(await p.locator('dialog').isVisible()));
+await p.screenshot({path:'design_review/workspace-dark.png'});
+await p.getByRole('button',{name:'Close learning pattern'}).click();await p.locator('[data-view="library"]').click();assert(await p.getByRole('heading',{name:'Library',exact:true}).isVisible());
+await p.getByRole('button',{name:'Notes',exact:true}).click();assert(!(await p.locator('[data-resource="reference"]').isVisible()));assert(await p.locator('[data-resource="note"]').isVisible());
+await p.screenshot({path:'design_review/library.png'});
+await p.locator('[data-view="activity"]').click();assert(await p.getByRole('heading',{name:'Activity',exact:true}).isVisible());await p.locator('[data-lesson="0"]').click();assert(await p.getByRole('heading',{name:'Solving equations, one step at a time'}).isVisible());
+await p.setViewportSize({width:390,height:844});await p.waitForTimeout(350);assert(await p.evaluate(()=>document.documentElement.scrollWidth===innerWidth));
+await p.getByRole('button',{name:'Account menu'}).click();await p.getByRole('button',{name:'Log out',exact:true}).click();await p.waitForTimeout(300);assert(await p.locator('.guest-notebook').isVisible());assert(await p.evaluate(()=>document.documentElement.scrollWidth===innerWidth));await p.screenshot({path:'design_review/notebook-mobile.png'});
+assert.deepEqual(errors,[]);await browser.close();console.log('Passed: Hairline guest-only, light/dark themes, account menu, library filters, activity resume, mobile overflow, no page errors.');
+

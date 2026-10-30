@@ -1,0 +1,15 @@
+FAIL  /                             missing meta description
+FAIL  /                             0 <h1> elements (want exactly 1)
+FAIL  /                             no <main> landmark
+FAIL  site                          a missing URL returned HTTP 200, not 404
+WARN  /                             no canonical link
+WARN  /                             missing og:title
+WARN  /                             missing og:description
+WARN  /                             missing og:image
+WARN  /                             missing twitter:card
+WARN  /                             only 9 words of visible text (thin content)
+WARN  /                             fonts 1835 KB (fewer weights, variable font, subset)
+
+1 pages crawled from http://127.0.0.1:8502/
+heaviest page /: ~1980 KB | html 2 | JS 136 (gz) | CSS 8 (gz) | fonts 1835 | images 0
+4 FAIL, 7 WARN

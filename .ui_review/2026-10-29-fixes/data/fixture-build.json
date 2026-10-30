@@ -1,0 +1,1 @@
+[{"state": "approved", "status": 200}, {"state": "lesson", "status": 200}, {"state": "practice", "status": 200}, {"state": "diagnostic", "status": 200}, {"state": "repair", "status": 200}, {"state": "changed-problem", "status": 200}, {"state": "feedback-correct", "status": 200}]

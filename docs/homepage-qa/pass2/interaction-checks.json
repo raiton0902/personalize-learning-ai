@@ -1,0 +1,25 @@
+{
+  "passed": 19,
+  "checks": [
+    "True black ground",
+    "Background moves at rest",
+    "Pause stops curves",
+    "Pause persists after reload",
+    "Curves stop while typing",
+    "CTA opens preferences",
+    "CTA focuses disclosure",
+    "CTA scrolls to preferences",
+    "Goal survives preference rerun",
+    "Disclosure can close",
+    "Keyboard CTA reopens preferences",
+    "Reduced motion stops curves",
+    "Reduced motion disables toggle",
+    "No horizontal overflow at 390px",
+    "No horizontal overflow at 768px",
+    "No horizontal overflow at 1024px",
+    "No horizontal overflow at 1440px",
+    "No horizontal overflow at 1920px",
+    "No browser JavaScript errors"
+  ],
+  "errors": []
+}

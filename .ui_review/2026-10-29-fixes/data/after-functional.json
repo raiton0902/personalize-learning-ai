@@ -1,0 +1,826 @@
+[
+  {
+    "id": "Workspace header home dark 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header library dark 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header activity dark 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header home dark 390",
+    "pass": true
+  },
+  {
+    "id": "Workspace header library dark 390",
+    "pass": true
+  },
+  {
+    "id": "Workspace header activity dark 390",
+    "pass": true
+  },
+  {
+    "id": "Workspace header home light 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header library light 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header activity light 1440",
+    "pass": true
+  },
+  {
+    "id": "Workspace header home light 390",
+    "pass": true
+  },
+  {
+    "id": "Workspace header library light 390",
+    "pass": true
+  },
+  {
+    "id": "Workspace header activity light 390",
+    "pass": true
+  },
+  {
+    "id": "QA-03 Library refresh after txt upload",
+    "pass": true
+  },
+  {
+    "id": "QA-03 Library refresh after md upload",
+    "pass": true
+  },
+  {
+    "id": "QA-03 Library refresh after docx upload",
+    "pass": true
+  },
+  {
+    "id": "QA-03 Library refresh after pdf upload",
+    "pass": true
+  },
+  {
+    "id": "Workspace header learning",
+    "pass": true
+  },
+  {
+    "id": "QA follow-up intake re-edit",
+    "pass": true
+  },
+  {
+    "id": "QA-04 honest draft progress",
+    "pass": true
+  },
+  {
+    "id": "QA follow-up history after source selection",
+    "pass": true
+  },
+  {
+    "id": "QA-05 old date below cap",
+    "pass": true
+  },
+  {
+    "id": "QA-05 old date at cap",
+    "pass": true
+  },
+  {
+    "id": "QA-06 extraction error inside modal",
+    "pass": true
+  },
+  {
+    "id": "QA follow-up account menu ARIA",
+    "pass": true
+  },
+  {
+    "id": "UI-05 axe notebook dark",
+    "pass": true
+  },
+  {
+    "id": "UI-04 textarea and button keyboard focus dark",
+    "pass": true
+  },
+  {
+    "id": "UI-05 axe notebook light",
+    "pass": true
+  },
+  {
+    "id": "UI-04 textarea and button keyboard focus light",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-04 email input keyboard focus dark",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/dark/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/dark/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch repair/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch practice/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch review/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch library/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch login/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch signup/dark/390",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch repair/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch practice/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch review/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch library/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch login/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch signup/dark/360",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-04 email input keyboard focus light",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/light/1440",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/light/1024",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch repair/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch practice/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch review/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch library/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch login/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch signup/light/390",
+    "pass": true
+  },
+  {
+    "id": "UI-08 first viewport and disclosure light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast repair/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries repair/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe repair/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch repair/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast practice/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries practice/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe practice/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch practice/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast review/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries review/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe review/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch review/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast library/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries library/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe library/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch library/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast login/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries login/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe login/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch login/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-01..03 contrast signup/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-06 boundaries signup/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI axe signup/light/360",
+    "pass": true
+  },
+  {
+    "id": "UI-07 touch signup/light/360",
+    "pass": true
+  }
+]
