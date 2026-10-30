@@ -38,11 +38,16 @@ The existing `NEBIUS_ALLOW_LIVE` gate, $2 estimated development allowance, promp
 
 ## Google login — needs your credentials
 
-Register a Google OAuth web client in your Google Cloud project. Configure this redirect URI exactly:
+Register a Google OAuth web client in your Google Cloud project. Configure this redirect URI:
 
 ```text
 http://127.0.0.1:8780/auth/google/callback
 ```
+
+When running behind a reverse proxy, VS Code Port Forwarding tunnel, or cloud container (e.g. Hugging Face Spaces):
+- The server automatically respects incoming X-Forwarded-Proto and X-Forwarded-Host headers (e.g. https://<tunnel-id>.app.github.dev/auth/google/callback or https://<space-name>.hf.space/auth/google/callback).
+- You can optionally set APP_BASE_URL=https://<your-domain> or GOOGLE_REDIRECT_URI=https://<your-domain>/auth/google/callback in your environment to explicitly lock the callback URL.
+- Add the forwarded callback URI to Google Cloud Console under Authorized redirect URIs.
 
 Add the following to the existing ignored `app/.env`; do not replace the Nebius values:
 
@@ -135,9 +140,9 @@ Lesson history records each visited objective and repeated practice instance, in
 
 New goal submission intentionally moves directly to a learning-generation screen with Thinking, superseding the earlier stay-on-Home behavior for this one action. Ordinary saved-course navigation still keeps its source view until loaded. Failed generation leaves explicit retry/back actions; no automatic paid retry occurs. `frontend_tools/learning-progress-check.mjs` covers the new browser flow with real local routes/storage and deterministic model fixtures.
 
-## Hugging Face Spaces (Docker Free) + Private Dataset SQLite Sync — 30 October 2026
+## Hugging Face Spaces (Free Gradio SDK or Docker) + Private Dataset SQLite Sync — 30 October 2026
 
-Root `Dockerfile`, `.dockerignore` and `app/hf_persistence.py` package the integrated browser application (`app/web_server.py` + `app/web/`) for Hugging Face Spaces (`CPU Basic` free Docker runtime, port `7860`) without rewriting any Python routes, schemas or frontend scripts.
+Root `README.md` YAML metadata (`sdk: gradio`, `app_file: app/hf_persistence.py`, `app_port: 7860`), `requirements.txt`, `packages.txt`, `Dockerfile`, `.dockerignore` and `app/hf_persistence.py` package the integrated browser application (`app/web_server.py` + `app/web/`) for Hugging Face Spaces (`CPU Basic` free tier, port `7860`) without rewriting any Python routes, schemas or frontend scripts. Because new Hugging Face free accounts gate Docker Spaces behind a paid plan while keeping `Gradio` (`Blank` template + `CPU Basic`) free, `README.md` configures the Space to run `python app/hf_persistence.py` directly on port `7860`.
 
 ### How persistence works across container sleep
 
@@ -151,7 +156,7 @@ Free Hugging Face Spaces sleep after roughly 48 hours of inactivity and reset th
 
 1. Create a **Private Dataset** on Hugging Face (for example, `<your-username>/personal-learning-data`). Keep it **Private** so learner databases and session keys are never public.
 2. Create a Hugging Face **User Access Token** (Fine-grained with Read and Write permissions to that private dataset repository).
-3. Create a new **Space** on Hugging Face, select **Docker** as the Space SDK (choose the **Blank** Docker template and **CPU basic · Free** hardware).
+3. Create a new **Space** on Hugging Face, select **Gradio** as the Space SDK, choose the **Blank** template, and click **CPU Basic** (Free tier) under Space hardware. *(If your account has Docker Spaces unlocked, Docker also works via root `Dockerfile`.)*
 4. In the Space's **Settings -> Variables and secrets**, add these **Secrets**:
    - `HF_TOKEN`: your write-capable Hugging Face token
    - `HF_DATASET_REPO`: `<your-username>/personal-learning-data`

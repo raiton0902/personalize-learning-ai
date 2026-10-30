@@ -746,3 +746,46 @@ def test_episode_step_span_validation_assistance_tracking_and_observation_correc
     solved_hint = client.post(path, json={"action": "attempt", "answer": "3", "work": "x = 3"}).json()["state"]
     assert solved_hint["episode"]["outcome"]["category"] == "correct_with_help"
     assert solved_hint["episode"]["outcome"]["label"] == "Solved with a hint"
+
+
+def test_google_callback_url_resolution(monkeypatch):
+    from starlette.requests import Request
+
+    # 1. Default local fallback
+    scope_local = {
+        "type": "http",
+        "method": "GET",
+        "path": "/auth/google",
+        "headers": [(b"host", b"127.0.0.1:8780")],
+        "server": ("127.0.0.1", 8780),
+        "scheme": "http",
+        "query_string": b"",
+        "app": web_server.app,
+    }
+    assert web_server.google_callback_url(Request(scope_local)) == "http://127.0.0.1:8780/auth/google/callback"
+
+    # 2. Reverse proxy / VS Code tunnel / Hugging Face Spaces forwarded headers
+    scope_forwarded = {
+        "type": "http",
+        "method": "GET",
+        "path": "/auth/google",
+        "headers": [
+            (b"host", b"localhost:8780"),
+            (b"x-forwarded-proto", b"https"),
+            (b"x-forwarded-host", b"tunnel-test.app.github.dev"),
+        ],
+        "server": ("127.0.0.1", 8780),
+        "scheme": "http",
+        "query_string": b"",
+        "app": web_server.app,
+    }
+    assert web_server.google_callback_url(Request(scope_forwarded)) == "https://tunnel-test.app.github.dev/auth/google/callback"
+
+    # 3. Explicit APP_BASE_URL environment variable
+    monkeypatch.setenv("APP_BASE_URL", "https://my-space.hf.space")
+    assert web_server.google_callback_url(Request(scope_forwarded)) == "https://my-space.hf.space/auth/google/callback"
+
+    # 4. Explicit GOOGLE_REDIRECT_URI environment variable (highest precedence)
+    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "https://custom.example.org/oauth/callback")
+    assert web_server.google_callback_url(Request(scope_forwarded)) == "https://custom.example.org/oauth/callback"
+

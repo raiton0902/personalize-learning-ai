@@ -1,9 +1,19 @@
 # Change record
 
-## 2026-10-30 — Prepare Hugging Face Spaces Docker deployment with private Dataset SQLite sync (2026-10-30.15)
+## 2026-10-30 — Dynamic Google OAuth callback resolution for reverse proxies, VS Code port tunnels, and cloud deployments (2026-10-30.16)
 
-- Added root `Dockerfile` (non-root `uid=1000`, port `7860`, `ffmpeg`, `fonts-dejavu-core`, `huggingface_hub`) and `.dockerignore` (excluding `.env`, `app/.env`, `app/.venv`, `app/local_results`, `*.sqlite3`, `*.key`, tests and preview artifacts so private data and credentials are never baked into an image).
-- Added `app/hf_persistence.py` entrypoint wrapper that restores `workspace.sqlite3`, `usage.sqlite3` and `web-session.key` from a private Hugging Face Dataset (`HF_DATASET_REPO`, `HF_TOKEN`) before starting Uvicorn (`--proxy-headers --forwarded-allow-ips=*`), and periodically backs up changed files using `sqlite3.Connection.backup` online snapshots and SHA-256 digests, plus a final flush on `SIGTERM`/`SIGINT`. Leaves local disk behavior unchanged when `HF_DATASET_REPO` or `HF_TOKEN` is unset. Existing application code (`app/web_server.py`, `app/web_store.py`, `app/web_tutor.py`, `app/web/` and `app/app.py`) is untouched.
+- Updated `app/web_server.py` Google OAuth authorization redirect to dynamically compute the callback URL via `google_callback_url(request)`:
+  - Automatically respects standard forwarded proxy headers (`X-Forwarded-Proto`, `X-Forwarded-Host`) when running behind VS Code Port Forwarding (`*.app.github.dev`), reverse proxies, or cloud platforms (e.g., Hugging Face Spaces `*.hf.space`).
+  - Supports optional explicit environment overrides `GOOGLE_REDIRECT_URI` and `APP_BASE_URL` if custom or non-forwarded vanity domains are needed.
+  - Retains existing local `request.url_for("google_callback")` fallback (`http://127.0.0.1:8780/auth/google/callback`) when accessed directly without proxy headers.
+- Added comprehensive unit test in `app/tests/test_web.py` (`test_google_callback_url_resolution`) verifying local fallback, forwarded header extraction, `APP_BASE_URL` override, and `GOOGLE_REDIRECT_URI` override.
+- Documented proxy/tunnel setup instructions in `docs/INTEGRATION.md` and synchronized all three mandatory handoff files (`2026-10-30.16`).
+- Verification: `test_google_callback_url_resolution` passed (2.74s); full `test_web.py` passed (41 passed in 15.05s); full test suite passed (240 passed, 2 browser tests deselected in 48.09s). No paid API calls, credentials or private learner DB inspected, push or deployment.
+
+## 2026-10-30 — Prepare Hugging Face Spaces deployment with private Dataset SQLite sync (2026-10-30.15)
+
+- Added root `README.md` Spaces YAML frontmatter (`sdk: gradio`, `app_file: app/hf_persistence.py`, `app_port: 7860`), root `requirements.txt` and `packages.txt` (`ffmpeg`, `fonts-dejavu-core`) so Free accounts where Docker Spaces are gated can deploy using the free **Gradio -> Blank -> CPU Basic** Space runtime, plus root `Dockerfile` and `.dockerignore` (excluding `.env`, `app/.env`, `app/.venv`, `app/local_results`, `*.sqlite3`, `*.key`, tests and preview artifacts).
+- Added `app/hf_persistence.py` entrypoint wrapper that restores `workspace.sqlite3`, `usage.sqlite3` and `web-session.key` from a private Hugging Face Dataset (`HF_DATASET_REPO`, `HF_TOKEN`) before starting Uvicorn (`--proxy-headers --forwarded-allow-ips=*`, defaulting `COOKIE_SECURE=true` when `SPACE_ID` is set), and periodically backs up changed files using `sqlite3.Connection.backup` online snapshots and SHA-256 digests, plus a final flush on `SIGTERM`/`SIGINT`. Leaves local disk behavior unchanged when `HF_DATASET_REPO` or `HF_TOKEN` is unset. Existing application code (`app/web_server.py`, `app/web_store.py`, `app/web_tutor.py`, `app/web/` and `app/app.py`) is untouched.
 - Added offline test suite `app/tests/test_hf_persistence.py` and documented setup in `docs/INTEGRATION.md`. Synchronized all three handoff files (`2026-10-30.15`).
 - Verification: `app/tests/test_hf_persistence.py` **4 passed (1.29s)**, covering unset-env no-op, online SQLite snapshot/restore roundtrip, SHA-256 deduplication, corrupt-snapshot rejection without overwriting local files, and end-to-end `web_server.app` signup/profile/cookie survival across simulated ephemeral disk reset. No paid API calls, `.env` or private database inspection, deployment or Git push. Actual Hugging Face Space creation, private dataset sync and live provider inference remain unverified until the owner configures their Hugging Face account secrets and pushes.
 

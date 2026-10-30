@@ -147,10 +147,26 @@ def logout(request):
     return response
 
 
+def google_callback_url(request: Request) -> str:
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        return explicit
+    base = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
+    if base:
+        return f"{base}/auth/google/callback"
+    forwarded_proto = request.headers.get("x-forwarded-proto", "").strip().lower()
+    proto = forwarded_proto.split(",")[0].strip() if forwarded_proto else ""
+    forwarded_host = request.headers.get("x-forwarded-host", "").strip()
+    host = (forwarded_host.split(",")[0].strip() if forwarded_host else "") or request.headers.get("host", "").strip()
+    if proto and host:
+        return f"{proto}://{host}/auth/google/callback"
+    return str(request.url_for("google_callback"))
+
+
 async def google_start(request):
     if not os.getenv("GOOGLE_CLIENT_ID") or not os.getenv("GOOGLE_CLIENT_SECRET"):
         return RedirectResponse("/?auth_error=google_setup_required")
-    return await oauth.google.authorize_redirect(request, str(request.url_for("google_callback")), prompt="select_account")
+    return await oauth.google.authorize_redirect(request, google_callback_url(request), prompt="select_account")
 
 
 async def google_callback(request):

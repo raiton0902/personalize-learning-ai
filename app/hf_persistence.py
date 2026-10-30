@@ -217,6 +217,9 @@ def serve() -> int:
         worker.start()
 
     port = os.getenv("PORT", "7860")
+    env = os.environ.copy()
+    if env.get("SPACE_ID"):
+        env.setdefault("COOKIE_SECURE", "true")
     cmd = [
         sys.executable,
         "-m",
@@ -229,7 +232,7 @@ def serve() -> int:
         "--proxy-headers",
         "--forwarded-allow-ips=*",
     ]
-    proc = subprocess.Popen(cmd, cwd=str(ROOT))
+    proc = subprocess.Popen(cmd, cwd=str(ROOT), env=env)
 
     def handle_signal(signum, _frame):
         if proc.poll() is None:

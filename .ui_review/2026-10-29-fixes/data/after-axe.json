@@ -175,7 +175,7 @@
     "incomplete": [
       {
         "id": "color-contrast",
-        "nodes": 16
+        "nodes": 15
       }
     ]
   },
@@ -463,7 +463,7 @@
     "incomplete": [
       {
         "id": "color-contrast",
-        "nodes": 16
+        "nodes": 15
       }
     ]
   },

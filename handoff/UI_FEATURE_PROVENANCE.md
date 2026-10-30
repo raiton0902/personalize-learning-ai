@@ -1,8 +1,12 @@
 # UI feature provenance and adoption decisions
 
+## Current handoff — 2026-10-30.16 (30 October 2026)
+
+Reviewed for revision 2026-10-30.16 (Dynamic OAuth callback resolution for reverse proxies, tunnels, and cloud deployments). No UI design, visual assets, or P01–P35 provenance decisions altered; no substantive update needed. Verification in CHANGELOG.
+
 ## Current handoff — 2026-10-30.15 (30 October 2026)
 
-Reviewed for revision 2026-10-30.15 (OWNER request for free zero-rewrite Python deployment via Hugging Face Spaces Docker + Private HF Dataset SQLite sync). Added `Dockerfile`, `.dockerignore`, `app/hf_persistence.py`, `app/tests/test_hf_persistence.py` and `docs/INTEGRATION.md` guidance without altering any UI design, visual assets or P01–P35 provenance decisions; no substantive update needed. Verification in CHANGELOG.
+Reviewed for revision 2026-10-30.15 (OWNER request for free zero-rewrite Python deployment via Hugging Face Spaces Free Gradio-SDK / Docker + Private HF Dataset SQLite sync). Added `README.md` Spaces frontmatter, `requirements.txt`, `packages.txt`, `Dockerfile`, `.dockerignore`, `app/hf_persistence.py`, `app/tests/test_hf_persistence.py` and `docs/INTEGRATION.md` guidance without altering any UI design, visual assets or P01–P35 provenance decisions; no substantive update needed. Verification in CHANGELOG.
 
 ## Current handoff — 2026-10-30.14 (30 October 2026)
 

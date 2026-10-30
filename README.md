@@ -1,3 +1,14 @@
+---
+title: Personal Learning
+emoji: 📘
+colorFrom: blue
+colorTo: red
+sdk: gradio
+app_file: app/hf_persistence.py
+app_port: 7860
+pinned: false
+---
+
 # Personal Learning
 
 The approved interface is integrated into a Python-served browser app: real local accounts, saved learning, Library search, Activity dates, document/public-link intake, dark/light themes and the right learning-pattern panel. Motion is limited to guest decoration and icon hover feedback. See [integration setup and limits](docs/INTEGRATION.md) and [change record](CHANGELOG.md).

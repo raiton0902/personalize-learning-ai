@@ -1,8 +1,12 @@
 # Unrealized changes and exact interface handoff
 
+## Current handoff — 2026-10-30.16 (30 October 2026)
+
+Reviewed for revision 2026-10-30.16 (`google_callback_url` dynamic reverse proxy / forwarded header / environment override resolution in `app/web_server.py`, with unit test `test_google_callback_url_resolution` in `app/tests/test_web.py` and documentation in `docs/INTEGRATION.md`). No UI, V01–V09, U01–U23 or B01–B07 behavioral contracts changed; no substantive update needed. Verification in CHANGELOG.
+
 ## Current handoff — 2026-10-30.15 (30 October 2026)
 
-Reviewed for revision 2026-10-30.15 (Hugging Face Spaces Docker packaging `Dockerfile`, `.dockerignore`, `app/hf_persistence.py` and `app/tests/test_hf_persistence.py`). No UI, V01–V09, U01–U23 or B01–B07 behavioral contracts changed; no substantive update needed. Remote Hugging Face Space creation, secret provisioning and git push remain owner-performed steps. Verification in CHANGELOG.
+Reviewed for revision 2026-10-30.15 (Hugging Face Spaces Free Gradio-SDK and Docker packaging `README.md`, `requirements.txt`, `packages.txt`, `Dockerfile`, `.dockerignore`, `app/hf_persistence.py` and `app/tests/test_hf_persistence.py`). No UI, V01–V09, U01–U23 or B01–B07 behavioral contracts changed; no substantive update needed. Remote Hugging Face Space creation, secret provisioning and git push remain owner-performed steps. Verification in CHANGELOG.
 
 ## Current handoff — 2026-10-30.14 (30 October 2026)
 
