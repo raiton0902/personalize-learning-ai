@@ -1,4 +1,3 @@
-import copy
 import json
 from types import SimpleNamespace
 
@@ -82,32 +81,18 @@ def test_biology_goal_with_empty_intake_keeps_english_without_repair(monkeypatch
     assert len(calls)==1
 
 
-@pytest.mark.parametrize('repair', ['success', 'still_wrong', 'changed_structure'])
-def test_plan_language_repair_is_one_pass_and_preserves_structure(monkeypatch, repair):
+def test_language_drift_does_not_block_or_trigger_repair(monkeypatch):
     original = plan('advanced_full')
     original['title'] = '目次'
-    translated = copy.deepcopy(original)
-    translated['title'] = 'Japanese History'
-    if repair == 'still_wrong': translated['title'] = '目次'
-    if repair == 'changed_structure': translated['objectives'][0]['minutes'] += 1
     calls = []
     def generate(schema, purpose, state, instruction, extra):
         calls.append(instruction)
-        if len(calls) == 2:
-            assert state['profile']['language'] == 'English'
-            assert extra['plan_to_translate']['title'] == '目次'
-            assert 'CRITICAL LANGUAGE RULE' in instruction
-        assert len(calls) <= 2
-        return schema.model_validate(original if len(calls) == 1 else translated).model_dump(), {}
+        return schema.model_validate(original).model_dump(), {}
     monkeypatch.setattr(web_tutor, 'generate', generate)
     state = {'profile': {'goal': 'teach me about Japanese History', 'language': ''}, 'source': {'id': 'general'}}
-    if repair == 'success':
-        result, metadata = web_tutor.propose(state)
-        assert result['title'] == 'Japanese History' and 'language_repair' in metadata
-    else:
-        with pytest.raises(ValueError, match='structure|wrong language'):
-            web_tutor.propose(state)
-    assert len(calls) == 2
+    result, metadata = web_tutor.propose(state)
+    assert result['title'] == '目次' and 'language_repair' not in metadata
+    assert len(calls) == 1
 
 
 def test_correct_language_does_not_repair(monkeypatch):

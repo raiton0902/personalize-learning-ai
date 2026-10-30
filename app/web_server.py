@@ -230,12 +230,12 @@ def public_state(state):
     safe = json.loads(json.dumps(state))
     import episode_helpers
     import learning_history
-    from language_rules import resolve,plan_mismatch
+    from language_rules import resolve
     learning_history.normalize_course_state(safe)
     learning_history.record(safe)
     learning_history.public_history(safe.get('lesson_history',[]))
     safe['response_language']=resolve(safe['profile'])
-    safe['plan_language_mismatch']=plan_mismatch(safe['profile'],safe.get('curriculum'))
+    safe['plan_language_mismatch']=False
     safe['episode']=episode_helpers.build_public_episode(safe)
     safe['review_status']=review.build_review_status(safe)
     if safe.get("question"):

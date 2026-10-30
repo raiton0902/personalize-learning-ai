@@ -776,7 +776,6 @@ def generate(schema, purpose, state, instruction, extra=None):
 
 
 def propose(state, changes=""):
-    import language_rules
     if state["source"]["id"] == "bundled":
         result, metadata = tutor.propose(state, changes)
         return normalize_curriculum(result, state["source"], state["profile"], strict_validation=True), metadata
@@ -825,27 +824,6 @@ def propose(state, changes=""):
         },
     )
     normalized = normalize_curriculum(result, state["source"], state["profile"], strict_validation=True)
-    if language_rules.plan_mismatch(state['profile'], normalized):
-        language = language_rules.resolve(state['profile'])
-        repair_state = {**state, 'profile': {**state['profile'], 'language': language}}
-        repaired, repair_metadata = generate(GroundedPlan, 'general_curriculum', repair_state,
-            'Translate ONLY learner-facing text of plan_to_translate into the required response language. Return the full curriculum JSON. '
-            'Preserve all IDs, module membership and order, prerequisites, levels, minutes, source IDs/section identifiers, concept IDs and assessment flags. '
-            + language_rules.instruction(language), {'plan_to_translate': normalized})
-        repaired = normalize_curriculum(repaired, state['source'], state['profile'], strict_validation=True)
-        def structure(plan):
-            return (
-                [(m['id'], m['level'], m['objective_ids']) for m in plan['modules']],
-                [(o['id'], o['module_id'], o['prerequisites'], o['source_ids'], o['minutes'], o['source_sections'], o['assessment_required'],
-                  [(c['id'], c['required']) for c in o['concepts']]) for o in plan['objectives']],
-            )
-        if structure(repaired) != structure(normalized):
-            raise ValueError('The language correction changed the curriculum structure. Your draft is preserved; retry manually.')
-        if issues := language_rules.plan_language_issues(state['profile'], repaired):
-            detail = '; '.join(f"{item['field']}: {item['detected']}" for item in issues[:3])
-            raise ValueError(f"The curriculum still uses the wrong language after one correction (expected {language}; {detail}). Your draft is preserved; retry manually.")
-        normalized = repaired
-        metadata = {**metadata, 'language_repair': repair_metadata}
     validate_track(normalized, track, cramming=cramming)
     if cramming:
         available = re.search(r'(\d+(?:\.\d+)?)\s*(hours?|minutes?)\b', state['profile'].get('time_budget', ''), re.I)
