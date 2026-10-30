@@ -88,7 +88,9 @@ def profile(owner, value, course_id=None):
             row=connection.execute('SELECT state FROM courses WHERE id=? AND owner=?',(course_id,owner)).fetchone()
             if not row:
                 raise ValueError('This learning session was not found in your account.')
-            state=json.loads(row[0]);state['profile']=value
+            state=json.loads(row[0])
+            # Preference saves merge, so course intake fields are not erased from the panel.
+            state['profile']={**(state.get('profile') or {}), **value}
             connection.execute('UPDATE courses SET state=?,revision=revision+1,updated=? WHERE id=? AND owner=?',(json.dumps(state),now(),course_id,owner))
         universal={key:value.get(key,'') for key in ('tone','interest')}
         connection.execute("UPDATE accounts SET profile=? WHERE id=?", (json.dumps(universal), owner))

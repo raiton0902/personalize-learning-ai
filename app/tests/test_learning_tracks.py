@@ -184,6 +184,54 @@ def test_unapproved_extension_and_rejected_candidate_leave_original_intact(track
     assert track_client.get(f'/api/courses/{cid}').json()['state']['curriculum'] == extended['curriculum']
 
 
+def test_mislabelled_module_levels_and_missing_module_are_repaired(monkeypatch):
+    generated = plan('advanced_full')
+    for module in generated['modules']:
+        module['level'] = 'Beginner'
+    moved = generated['modules'].pop()
+    generated['modules'][-1]['objective_ids'].extend(moved['objective_ids'])
+
+    def generate(schema, *args):
+        return schema.model_validate(generated).model_dump(), {}
+
+    monkeypatch.setattr(web_tutor, 'generate', generate)
+    result, _ = web_tutor.propose({'profile': {'goal': 'Learn Python'}, 'source': {'id': 'general'}, 'intake': {}})
+    assert [module['level'] for module in result['modules']] == ['Beginner', 'Intermediate', 'Advanced']
+    seen = [oid for module in result['modules'] for oid in module['objective_ids']]
+    assert len(seen) == len(set(seen)) == len(result['objectives'])
+    assert sorted(seen) == sorted(objective['id'] for objective in result['objectives'])
+
+
+def test_hallucinated_prerequisite_is_dropped_and_plan_survives(monkeypatch):
+    generated = plan('advanced_full')
+    generated['objectives'][1]['prerequisites'] = ['lesson.not_in_plan']
+
+    def generate(schema, *args):
+        return schema.model_validate(generated).model_dump(), {}
+
+    monkeypatch.setattr(web_tutor, 'generate', generate)
+    result, _ = web_tutor.propose({'profile': {'goal': 'Learn Python'}, 'source': {'id': 'general'}, 'intake': {}})
+    assert result['objectives'][1]['prerequisites'] == []
+
+
+def test_non_model_actions_do_not_consume_model_throttle(track_client, monkeypatch):
+    monkeypatch.setattr(web_tutor, 'propose', lambda state, changes='': (plan('advanced_full'), {}))
+    created = track_client.post('/api/courses', json={'skip_intake': True, 'profile': {'goal': 'Learn Python'}})
+    assert created.status_code == 200, created.text
+    cid = created.json()['id']
+
+    recorded = []
+    monkeypatch.setattr(web_store, 'throttle', lambda key, *args, **kwargs: recorded.append(str(key)))
+    approved = track_client.post(f'/api/courses/{cid}', json={'action': 'approve'})
+    assert approved.status_code == 200, approved.text
+    assert not any(key.startswith('model:') for key in recorded)
+
+    monkeypatch.setattr(web_tutor, 'teach', lambda state: ({'explanation': 'A lesson.', 'worked_example': ['One.', 'Two.']}, {}))
+    taught = track_client.post(f'/api/courses/{cid}', json={'action': 'teach'})
+    assert taught.status_code == 200, taught.text
+    assert any(key.startswith('model:action:') for key in recorded)
+
+
 def test_guest_and_tracks_browser(monkeypatch, tmp_path):
     monkeypatch.setenv('WEB_DB', str(tmp_path / 'browser.sqlite3'))
     monkeypatch.setattr(web_tutor, 'propose', lambda state, changes='': (plan('advanced_full', bool(state['profile'].get('cramming'))), {}))

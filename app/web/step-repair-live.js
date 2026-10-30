@@ -127,6 +127,22 @@
     start_review: 'Preparing…'
   };
 
+  // Each action reports pending state on the control the learner actually pressed.
+  const ACTION_TRIGGER = {
+    intake: '#submit-intake-btn',
+    submit_intake: '#submit-intake-btn',
+    skip_intake: '#skip-intake-btn'
+  };
+
+  // Server-aligned intake limits; the previous single 400 limit mismatched time_budget.
+  const INTAKE_MAX_LENGTH = {
+    intended_outcome: 400,
+    starting_knowledge: 700,
+    time_budget: 200,
+    requirements: 300,
+    preferences: 100
+  };
+
   // QA follow-ups: stable history delegation and synchronized account disclosure state.
   $('#history')?.addEventListener('click', event => {
     const title = event.target.closest('.course-title[data-course-id]');
@@ -254,7 +270,9 @@
     });
     $('#confirm-save')?.addEventListener('click', async () => {
       if (typeof savePattern === 'function') {
-        await savePattern();
+        // A failed save keeps this confirmation open with the edits and error in place.
+        const saved = await savePattern();
+        if (!saved) return;
       }
       dialog.close();
       nextAction();
@@ -653,10 +671,15 @@
 
   /* V07, V08, U03, U04: Operation-scoped waiting & inline error recovery for courseAction(action, data) */
   const prevCourseAction = window.courseAction;
+  let courseActionBusy = false;
   window.courseAction = async function(action, data = {}) {
     if (action === 'question') {
       return prevCourseAction(action, data);
     }
+    // One mutating course action at a time: a second click must not duplicate the request.
+    if (courseActionBusy || document.body.inert) return;
+    courseActionBusy = true;
+    document.body.inert = true;
     const reqKey = `${currentCourse}:${action}:${String(data?.answer || data?.text || '').slice(0, 60)}`;
     const requestId = data?.request_id || makeRequestId(reqKey);
     const payload = {action, ...data, request_id: requestId};
@@ -671,7 +694,9 @@
       else learningView.append(feedbackHost);
     }
 
-    const trigger = learningView.querySelector('form button[type="submit"]') || learningView.querySelector('.lesson-actions button');
+    const trigger = (ACTION_TRIGGER[action] && learningView.querySelector(ACTION_TRIGGER[action]))
+      || learningView.querySelector('form button[type="submit"]')
+      || learningView.querySelector('.lesson-actions button');
     const origHtml = trigger ? trigger.innerHTML : '';
     const origMinWidth = trigger ? trigger.style.minWidth : '';
     if (trigger) {
@@ -696,7 +721,8 @@
       if (action === 'attempt' && currentCourse) {
         delete practiceDrafts[currentCourse];
       }
-      await refreshData();
+      // Auxiliary list refresh must not turn a successful action into a generation error.
+      try { await refreshData(); } catch (_) {}
       renderCourse(result);
       return result;
     } catch (error) {
@@ -710,8 +736,17 @@
       lastFailedOp = {action, data: {...data, request_id: requestId}, message: error?.message || 'Request failed.'};
       if (feedbackHost && feedbackHost.isConnected) {
         feedbackHost.innerHTML = operationErrorMarkup(lastFailedOp, action);
+        feedbackHost.scrollIntoView({block: 'center'});
         $('#retry-operation', feedbackHost)?.addEventListener('click', () => {
-          if (lastFailedOp) window.courseAction(lastFailedOp.action, lastFailedOp.data);
+          if (!lastFailedOp) return;
+          const failed = lastFailedOp;
+          let retryData = {...failed.data};
+          if ((failed.action === 'intake' || failed.action === 'skip_intake')
+              && typeof window.collectIntakePayload === 'function'
+              && learningView.querySelector('#intake-form')) {
+            retryData = {...window.collectIntakePayload(), provisional: failed.action === 'skip_intake', request_id: failed.data.request_id};
+          }
+          window.courseAction(failed.action, retryData);
         });
         $('#reconcile-operation', feedbackHost)?.addEventListener('click', async () => {
           try {
@@ -730,6 +765,10 @@
           field?.focus();
         });
       }
+    } finally {
+      courseActionBusy = false;
+      document.body.inert = pendingRequests.size > 0;
+      if (formEl && formEl.isConnected) formEl.inert = false;
     }
   };
 
@@ -769,7 +808,7 @@
         const val = draft[q.field] || draft[q.id] || state.profile?.[q.field] || '';
         return `<div class="intake-field">
           <label for="intake-input-${esc(q.id)}">${esc(q.label)}${q.required ? '' : ' <small>(optional)</small>'}</label>
-          <input id="intake-input-${esc(q.id)}" data-intake-field="${esc(q.field)}" data-intake-id="${esc(q.id)}" maxlength="400" placeholder="${esc(q.placeholder || '')}" value="${esc(val)}">
+          <input id="intake-input-${esc(q.id)}" data-intake-field="${esc(q.field)}" data-intake-id="${esc(q.id)}" maxlength="${INTAKE_MAX_LENGTH[q.id] || 400}" placeholder="${esc(q.placeholder || '')}" value="${esc(val)}">
         </div>`;
       }).join('');
 
@@ -831,6 +870,7 @@
         resource_id: selectedReference?.id || state.resource_id || undefined
       };
     };
+    window.collectIntakePayload = collectPayload;
 
     $$('[data-intake-field]', learningView).forEach(inp => {
       inp.addEventListener('input', () => {
@@ -993,7 +1033,7 @@
     const actions = learningView.querySelector('.lesson-actions');
     if (actions) {
       actions.before(container);
-      const approveBtn = [...actions.querySelectorAll('button')].find(b => /accept this plan/i.test(b.textContent));
+      const approveBtn = [...actions.querySelectorAll('button')].find(b => /approve curriculum|accept this plan/i.test(b.textContent));
       if (approveBtn) {
         approveBtn.onclick = () => window.courseAction('approve', {version: state.version});
       }

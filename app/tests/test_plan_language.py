@@ -100,10 +100,12 @@ def test_correct_language_does_not_repair(monkeypatch):
     def generate(schema, *args):
         calls.append(1)
         module_schema=schema.model_json_schema()['$defs']['GroundedModule']
-        assert 'level' in module_schema['required']
+        # Levels are repaired after generation, so the field stays present but optional.
+        assert 'level' in module_schema['properties']
         return schema.model_validate(plan('advanced_full')).model_dump(), {}
     monkeypatch.setattr(web_tutor, 'generate', generate)
-    web_tutor.propose({'profile': {'goal': 'Learn Python'}, 'source': {'id': 'general'}})
+    result, _ = web_tutor.propose({'profile': {'goal': 'Learn Python'}, 'source': {'id': 'general'}})
+    assert [module['level'] for module in result['modules']] == ['Beginner', 'Intermediate', 'Advanced']
     assert len(calls) == 1
 
 

@@ -302,7 +302,101 @@ def _section_matches_source(section_label, source_text, inspected_sections):
     return False
 
 
-def normalize_curriculum(plan, source=None, profile=None, strict_validation=False):
+TRACK_BOUNDS = {
+    'beginner': (1, 1, 1, 5),
+    'intermediate': (2, 3, 6, 12),
+    'advanced_full': (3, 5, 6, 18),
+}
+LEVEL_ORDER = ('Beginner', 'Intermediate', 'Advanced')
+
+
+def track_bounds(track='advanced_full', cramming=False):
+    if cramming:
+        return (3, 3, 3, 9)
+    return TRACK_BOUNDS.get(track, TRACK_BOUNDS['advanced_full'])
+
+
+def _unique_module_id(modules, base):
+    base = re.sub(r"[^A-Za-z0-9._-]+", "_", str(base or 'module')).strip('._-')[:64] or 'module'
+    existing = {str(module.get('id') or '') for module in modules}
+    candidate, index = base, 2
+    while candidate in existing:
+        candidate = f"{base}.{index}"[:80]
+        index += 1
+    return candidate
+
+
+def _repair_module_levels(modules):
+    """Keep a valid Beginner→Intermediate→Advanced sequence, otherwise assign tiers by position.
+
+    Provider output is stochastic; a mislabelled or out-of-order level should not discard
+    an otherwise complete plan. The repaired sequence is deterministic and non-decreasing.
+    """
+    if not modules:
+        return
+    explicit = [str(module.get('level') or '').strip().capitalize() for module in modules]
+    ranks = {level: index for index, level in enumerate(LEVEL_ORDER)}
+    ordered = (
+        all(level in ranks for level in explicit)
+        and all(ranks[a] <= ranks[b] for a, b in zip(explicit, explicit[1:]))
+        and set(LEVEL_ORDER) <= set(explicit)
+    )
+    if ordered:
+        for module, level in zip(modules, explicit):
+            module['level'] = level
+        return
+    total = len(modules)
+    for index, module in enumerate(modules):
+        module['level'] = LEVEL_ORDER[min(len(LEVEL_ORDER) - 1, (index * len(LEVEL_ORDER)) // total)]
+
+
+def _split_modules_to_minimum(modules, objectives, minimum):
+    """Split the largest lesson groups until the plan reaches its minimum module count."""
+    by_id = {objective['id']: objective for objective in objectives}
+    while len(modules) < minimum:
+        candidates = sorted(
+            (module for module in modules if len(module.get('objective_ids') or []) >= 2),
+            key=lambda module: len(module['objective_ids']),
+            reverse=True,
+        )
+        if not candidates:
+            break
+        module = candidates[0]
+        ids = list(module['objective_ids'])
+        left, right = ids[:len(ids) // 2], ids[len(ids) // 2:]
+        module['objective_ids'] = left
+        new_module = {
+            'id': _unique_module_id(modules, f"{module.get('id') or 'module'}.part"),
+            'title': f"{module.get('title') or 'Module'} · part {len(modules) + 1}"[:120],
+            'summary': module.get('summary') or '',
+            'objective_ids': right,
+            'level': module.get('level', LEVEL_ORDER[0]),
+            'estimated_minutes': 0,
+        }
+        modules.insert(modules.index(module) + 1, new_module)
+        for objective_id in right:
+            objective = by_id.get(objective_id)
+            if objective:
+                objective['module_id'] = new_module['id']
+                objective['module_title'] = new_module['title']
+
+
+def _merge_modules_to_maximum(modules, objectives, maximum):
+    """Merge trailing module groups until the plan no longer exceeds its module ceiling."""
+    by_id = {objective['id']: objective for objective in objectives}
+    while len(modules) > maximum:
+        last = modules.pop()
+        target = modules[-1]
+        for objective_id in last.get('objective_ids') or []:
+            if objective_id not in target['objective_ids']:
+                target['objective_ids'].append(objective_id)
+            objective = by_id.get(objective_id)
+            if objective:
+                objective['module_id'] = target['id']
+                objective['module_title'] = target['title']
+
+
+def normalize_curriculum(plan, source=None, profile=None, strict_validation=False, track=None, cramming=None):
     if not isinstance(plan, dict):
         return plan
     out = copy.deepcopy(plan)
@@ -341,8 +435,11 @@ def normalize_curriculum(plan, source=None, profile=None, strict_validation=Fals
         prereqs = list(raw.get("prerequisites") or [])
         sids = list(raw.get("source_ids") or ([source_id] if source_id else ["general"]))
         if strict_validation:
-            if not oid or oid in seen_ids or any(p not in seen_ids for p in prereqs):
-                raise ValueError("The proposed plan had invalid references or ordering. Please try again.")
+            if not oid or oid in seen_ids:
+                raise ValueError("The proposed plan reused an objective identifier. Please try again.")
+            # Providers often cite a later or invented prerequisite; keep only the
+            # prerequisites that are already ordered before this lesson.
+            prereqs = [p for p in prereqs if p in seen_ids]
             if source_id and set(sids) != {source_id}:
                 raise ValueError("The proposed plan had invalid references or ordering. Please try again.")
         else:
@@ -359,8 +456,6 @@ def normalize_curriculum(plan, source=None, profile=None, strict_validation=Fals
                 if _section_matches_source(s, source_text, inspected_sections)
                 and not any(u.lower() in s.lower() for u in source_info["unavailable_sections"])
             ]
-            if strict_validation and raw_sections and not verified_sections:
-                raise ValueError("The proposed plan cited source sections that were not found in the supplied reference.")
             if not verified_sections and inspected_sections:
                 title_tokens = [t for t in re.findall(r"[a-z0-9]{3,}", (title + " " + outcome).lower()) if t not in {"the", "and", "with", "from", "into", "using", "understand", "learn"}]
                 matched = [
@@ -562,8 +657,15 @@ def normalize_curriculum(plan, source=None, profile=None, strict_validation=Fals
                         obj_by_id[moved_id]["module_title"] = modules[s - 1]["title"]
 
     modules = [m for m in modules if m["objective_ids"]]
+    if strict_validation and track:
+        cram_scope = bool(cramming) if cramming is not None else bool((profile or {}).get('cramming'))
+        low_modules, high_modules, _, _ = track_bounds(track, cram_scope)
+        _merge_modules_to_maximum(modules, normalized_objectives, high_modules)
+        _split_modules_to_minimum(modules, normalized_objectives, low_modules)
+        _repair_module_levels(modules)
     for mod in modules:
-        mod.setdefault('level', 'Beginner')
+        if mod.get('level') not in LEVEL_ORDER:
+            mod['level'] = 'Beginner'
         mod['estimated_minutes'] = sum(o['minutes'] for o in normalized_objectives if o['id'] in mod['objective_ids'])
 
     prior = extract_prior_knowledge(profile or {})
@@ -791,11 +893,13 @@ def propose(state, changes=""):
         source_ids: list[Literal[source_id]] = Field(min_length=1, max_length=1)
 
     class GroundedModule(CurriculumModule):
-        level: Literal['Beginner', 'Intermediate', 'Advanced']
+        level: str = Field(default='', max_length=32)
 
     class GroundedPlan(GeneralPlan):
+        # Module grouping is repaired deterministically after generation, so a provider
+        # that omits or over/under-splits modules does not discard an otherwise usable plan.
         objectives: list[GroundedObjective] = Field(min_length=min_lesson, max_length=min(max_lesson, MAX_CURRICULUM_OBJECTIVES))
-        modules: list[GroundedModule] = Field(min_length=min_mod, max_length=max_mod)
+        modules: list[GroundedModule] = Field(default_factory=list, max_length=12)
 
     result, metadata = generate(
         GroundedPlan,
@@ -823,7 +927,7 @@ def propose(state, changes=""):
             **({'existing_curriculum': state['curriculum']} if state.get('_extending_track') else {}),
         },
     )
-    normalized = normalize_curriculum(result, state["source"], state["profile"], strict_validation=True)
+    normalized = normalize_curriculum(result, state["source"], state["profile"], strict_validation=True, track=track, cramming=cramming)
     validate_track(normalized, track, cramming=cramming)
     if cramming:
         available = re.search(r'(\d+(?:\.\d+)?)\s*(hours?|minutes?)\b', state['profile'].get('time_budget', ''), re.I)
@@ -835,10 +939,7 @@ def propose(state, changes=""):
 
 
 def validate_track(plan, track='advanced_full', *, cramming=False):
-    bounds = {'beginner': (1, 1, 1, 5), 'intermediate': (2, 3, 6, 12), 'advanced_full': (3, 5, 6, 18)}
-    low_m, high_m, low_l, high_l = bounds[track]
-    if cramming:
-        low_m, high_m, low_l, high_l = 3, 3, 3, 9
+    low_m, high_m, low_l, high_l = track_bounds(track, cramming)
     modules = plan.get('modules') or []
     levels = [m.get('level', 'Beginner') for m in modules]
     expected = ['Beginner'] if track == 'beginner' else ['Beginner', 'Intermediate'] if track == 'intermediate' else ['Beginner', 'Intermediate', 'Advanced']

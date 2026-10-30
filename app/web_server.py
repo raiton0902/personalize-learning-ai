@@ -77,6 +77,29 @@ EXTRA_INTAKE_LIMITS = {
     "lesson_size": 100,
 }
 
+# Only model-consuming actions consume the paid-inference rate allowance. Navigation,
+# approvals and draft saves previously incremented the same counter and could make a
+# later curriculum proposal fail with a misleading "Too many requests" error.
+MODEL_CREATE_LIMIT = 30
+MODEL_ACTION_LIMIT = 60
+MODEL_COURSE_ACTIONS = {
+    "intake",
+    "submit_intake",
+    "skip_intake",
+    "direct_question",
+    "revise",
+    "extend_curriculum",
+    "teach",
+    "practice",
+    "attempt",
+    "diagnostic",
+    "start_review",
+    "question",
+    "chat",
+    "chat_transfer",
+    "chat_reconsider",
+}
+
 
 def clean_profile(value):
     if not isinstance(value, dict):
@@ -270,7 +293,6 @@ async def courses(request):
     account = user(request)
     if request.method == "GET":
         return JSONResponse({"courses": store.courses(account["id"])})
-    store.throttle("model:"+account["id"], 30)
     data = await request.json()
     raw_profile = dict(data.get("profile") or {})
     stored_universal = json.loads(account.get("profile") or "{}")
@@ -294,6 +316,7 @@ async def courses(request):
     if not learner["goal"]:
         raise ValueError("Write a learning goal first.")
     if data.get("direct_question"):
+        store.throttle("model:create:"+account["id"], MODEL_CREATE_LIMIT)
         temp_state = {
             "profile": learner,
             "source": {"id": "general", "title": "Direct question", "origin": "Direct question without starting a course", "text": learner["goal"]},
@@ -358,6 +381,7 @@ async def courses(request):
         store.event(account["id"], cid, "Started intake for: " + learner["goal"])
         return JSONResponse({"id": cid, "state": public_state(state)})
 
+    store.throttle("model:create:"+account["id"], MODEL_CREATE_LIMIT)
     plan, metadata = await run_in_threadpool(web_tutor.propose, state)
     plan = web_tutor.normalize_curriculum(plan, state["source"], state["profile"], strict_validation=False)
     state.update(curriculum=plan, metadata=metadata)
@@ -465,12 +489,15 @@ async def course(request):
     completed = state.setdefault("completed_requests", {})
     if request_id and action in DEDUPLICATED_ACTIONS and request_id in completed:
         return JSONResponse({"id": cid, "state": public_state(state), "deduplicated": True})
-    store.throttle("model:"+account["id"], 60)
+    if action in MODEL_COURSE_ACTIONS:
+        store.throttle("model:action:"+account["id"], MODEL_ACTION_LIMIT)
     title = "Updated learning"
     if action in {'revise','extend_curriculum','apply_revision','practice','skip_check','next'}:
         learning_history.record(state)
 
     if action in {"intake", "submit_intake", "skip_intake", "intake_draft"}:
+        if state.get("approved_version") is not None:
+            raise ValueError("This learning already has an approved plan. Request a curriculum revision instead.")
         _merge_intake_payload(state, data)
         if data.get("resource_id"):
             ref = store.resource(account["id"], data.get("resource_id"))
@@ -503,7 +530,13 @@ async def course(request):
                 {"resource_id": state.get("resource_id"), "skip_intake": is_skip},
                 {"status": "provisional" if is_skip else "completed", "assumptions": assumptions},
             )
-            plan, metadata = await run_in_threadpool(web_tutor.propose, state)
+            try:
+                plan, metadata = await run_in_threadpool(web_tutor.propose, state)
+            except Exception:
+                # Keep the learner's edited scope so a failed generation can be retried
+                # without re-entering the intake answers.
+                store.save_course(account["id"], cid, state, revision)
+                raise
             plan = web_tutor.normalize_curriculum(plan, state["source"], state["profile"], strict_validation=False)
             state.update(curriculum=plan, metadata=metadata, stage="plan", approved_version=None)
             title = "Created learning plan from intake: " + plan["title"]
@@ -588,7 +621,9 @@ async def course(request):
         offer["dismissed"] = True
         title = "Dismissed checkpoint export offer"
     elif action == "profile":
-        state["profile"] = clean_profile(data.get("profile", {}))
+        # Merge so a preference save from the right panel cannot erase intake fields.
+        incoming = data.get("profile") if isinstance(data.get("profile"), dict) else {}
+        state["profile"] = clean_profile({**(state.get("profile") or {}), **incoming})
     else:
         if state["approved_version"] != state["version"] and action not in {"chat", "chat_discard", "chat_transfer", "chat_reconsider"}:
             raise ValueError("Accept the current plan before starting a lesson.")
@@ -625,7 +660,7 @@ async def course(request):
         elif action == "skip_check":
             objectives = state["curriculum"]["objectives"]
             current_obj = objectives[min(state["objective_index"], len(objectives) - 1)]
-            if current_obj.get("assessment_required", True) and not data.get("optional_check"):
+            if current_obj.get("assessment_required", True):
                 raise ValueError("This lesson requires a practice check before moving on.")
             if state["stage"] not in {"lesson", "attempt"}:
                 raise ValueError("Open the lesson before skipping an optional check.")
