@@ -17,3 +17,14 @@ node_modules/
 
 *.md
 !/README.md
+
+# Generated reviews and screenshots
+.jury/
+.ui_review/
+design_review/
+docs/
+app/tests/artifacts/
+
+# Keep the bundled course reference
+!/app/sample_materials/
+!/app/sample_materials/course_reference.md
