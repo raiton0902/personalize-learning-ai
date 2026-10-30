@@ -791,16 +791,19 @@ def propose(state, changes=""):
     class GroundedObjective(GeneralObjective):
         source_ids: list[Literal[source_id]] = Field(min_length=1, max_length=1)
 
+    class GroundedModule(CurriculumModule):
+        level: Literal['Beginner', 'Intermediate', 'Advanced']
+
     class GroundedPlan(GeneralPlan):
         objectives: list[GroundedObjective] = Field(min_length=min_lesson, max_length=min(max_lesson, MAX_CURRICULUM_OBJECTIVES))
-        modules: list[CurriculumModule] = Field(min_length=min_mod, max_length=max_mod)
+        modules: list[GroundedModule] = Field(min_length=min_mod, max_length=max_mod)
 
     result, metadata = generate(
         GroundedPlan,
         "general_curriculum",
         state,
         f"Propose the complete {track} progression with {min_mod}–{max_mod} modules and {min_lesson}–{max_lesson} lessons. "
-        "Use progressive Beginner then Intermediate then Advanced module levels as appropriate to the track. The full path must end in a concrete advanced implementation or academic outcome. "
+        "Explicitly provide level on EVERY module. Include ALL THREE levels: Beginner first, Intermediate next, Advanced last, in that order; do not omit any tier or put earlier tiers after later tiers. The full path must end in a concrete advanced implementation or academic outcome. "
         "Show Beginner foundations, Intermediate applied skills/workflows, and Advanced end-to-end implementation upfront. No deferred track choices or extension preview. "
         + ("CRAMMING: use Beginner Core Exam Essentials, Intermediate Standard Exam Problems, Advanced High-Yield Edge Cases & Rapid Drills. Prioritize the specified exam topics and weakest areas, use short 3–20 minute lessons and keep the TOTAL workload within the learner's available time. State that exam readiness is not guaranteed. " if cramming else "") +
         "Organize objectives into modules, with stable IDs, measurable outcomes, rough workload minutes, and core concepts per objective. "
@@ -864,7 +867,7 @@ def validate_track(plan, track='advanced_full', *, cramming=False):
     if not (low_m <= len(modules) <= high_m and low_l <= len(plan['objectives']) <= high_l):
         raise ValueError('The generated plan does not fit your selected track. Your draft is preserved; retry manually.')
     if any(level not in expected for level in levels) or any(expected.index(a) > expected.index(b) for a, b in zip(levels, levels[1:])) or not all(level in levels for level in expected):
-        raise ValueError('The generated modules do not follow the selected track progression. Retry manually.')
+        raise ValueError('The generated modules do not follow Beginner → Intermediate → Advanced progression (received: ' + ', '.join(levels) + '). Your draft is preserved; retry manually.')
     plan['track_type'] = track
     if track == 'beginner' and not plan.get('next_track_preview'):
         plan['next_track_preview'] = ['Intermediate: apply these foundations in practical workflows.', 'Advanced: combine the skills in a substantial implementation or academic task.']

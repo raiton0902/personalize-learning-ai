@@ -114,6 +114,8 @@ def test_correct_language_does_not_repair(monkeypatch):
     calls = []
     def generate(schema, *args):
         calls.append(1)
+        module_schema=schema.model_json_schema()['$defs']['GroundedModule']
+        assert 'level' in module_schema['required']
         return schema.model_validate(plan('advanced_full')).model_dump(), {}
     monkeypatch.setattr(web_tutor, 'generate', generate)
     web_tutor.propose({'profile': {'goal': 'Learn Python'}, 'source': {'id': 'general'}})
