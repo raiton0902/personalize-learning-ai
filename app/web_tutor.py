@@ -930,7 +930,7 @@ def practice(state, changed=False, target_objective=None):
         state,
         "Create ONE short exercise for this objective with a reference answer and a checked worked solution. Never use placeholder labels such as NO_SOLUTION for the worked solution. "
         "If changed is true or previous_question is supplied, test the SAME underlying concept with changed values or context. "
-        "Do not copy the learner's last question. This is model-generated practice, not independently verified.",
+        "The prompt must contain the complete answerable task, including any needed code, values or context. Never repeat the learner's learning goal or return a topic label as the exercise. Provide a nonempty reference answer and worked solution. Do not copy the learner's last question. This is model-generated practice, not independently verified.",
         {
             "objective": current,
             "changed": changed,
@@ -939,6 +939,16 @@ def practice(state, changed=False, target_objective=None):
             "previous_question": state.get("question"),
         },
     )
+    def key(text):
+        return ' '.join(re.findall(r'\w+', str(text).casefold()))
+    prompt = key(result.get('prompt', ''))
+    goal = key(state['profile'].get('goal', ''))
+    placeholders = {'none', 'null', 'n a', 'todo', 'no question', 'no solution', 'no_solution'}
+    if not prompt or prompt == goal or prompt in placeholders or any(
+        not key(result.get(field, '')) or key(result[field]) in placeholders for field in ('answer', 'solution')
+    ):
+        from llm import ModelRequestError
+        raise ModelRequestError('The AI did not provide a usable practice exercise. Your lesson is preserved; try generating practice again.')
     return {"id": "generated", **result}, metadata
 
 
