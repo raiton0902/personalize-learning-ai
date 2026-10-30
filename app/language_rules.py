@@ -2,6 +2,7 @@ import re
 from langdetect import DetectorFactory, detect_langs, LangDetectException
 
 DetectorFactory.seed=0
+FOREIGN_WORDS={'le','la','les','des','une','pour','avec','je','nous','quiero','aprender','historia','el','los','las','der','die','das','ich','und','ik','wil','leren','quero','uma','gli','della'}
 NAMES={'en':'English','id':'Indonesian','fr':'French','de':'German','es':'Spanish','pt':'Portuguese','it':'Italian','zh-cn':'Mandarin Chinese','zh-tw':'Mandarin Chinese','ja':'Japanese','ko':'Korean','ar':'Arabic','ru':'Russian','hi':'Hindi','nl':'Dutch','tr':'Turkish','vi':'Vietnamese','th':'Thai'}
 
 
@@ -13,8 +14,7 @@ def detect_language(text):
     words=set(re.findall(r'[a-z]+',text.casefold()))
     if words & {'saya','aku','belajar','jelaskan','mengapa','bagaimana'}:return 'id'
     if re.search(r'\b(?:i want to|i would like to|teach me|explain .+ to me|why is|how do|how can|introduce .+ programming)\b',text,re.I):return 'en'
-    foreign_words={'le','la','les','des','une','pour','avec','je','nous','quiero','aprender','historia','el','los','las','der','die','das','ich','und','ik','wil','leren','quero','uma','gli','della'}
-    if text.isascii() and not words & foreign_words:
+    if text.isascii() and not words & FOREIGN_WORDS:
         if words & {'the','a','an','and','to','in','with','from','for','of','can','apply','learn','understand','write','practice','exam'}:return 'en'
         if re.search(r'\b(?:japanese|chinese|korean|french|german|russian)\s+(?:history|culture|philosophy|war|language)\b',text,re.I):return 'en'
         if words and len(re.findall(r'[^\W\d_]',text))<18:return 'en'
@@ -34,18 +34,29 @@ def resolve(profile, latest=''):
 
 
 def plan_mismatch(profile,plan):
+    return bool(plan_language_issues(profile,plan))
+
+
+def plan_language_issues(profile,plan):
     expected=resolve(profile)
     codes={code for code,name in NAMES.items() if name.casefold()==expected.casefold()}
-    if not codes:return False
+    if not codes:return []
     plan=plan or {}
-    texts=[plan.get('title',''),plan.get('scope_note','')]
-    texts += [item.get(key,'') for item in plan.get('modules',[]) for key in ('title','summary')]
-    texts += [item.get(key,'') for item in plan.get('objectives',[]) for key in ('title','outcome')]
+    texts=[(key,plan.get(key,'')) for key in ('title','scope_note')]
+    texts += [(f'modules[{i}].{key}',item.get(key,'')) for i,item in enumerate(plan.get('modules',[])) for key in ('title','summary')]
+    texts += [(f'objectives[{i}].{key}',item.get(key,'')) for i,item in enumerate(plan.get('objectives',[])) for key in ('title','outcome')]
     latin={'en','id','fr','de','es','pt','it','nl','tr','vi'}
-    for text in texts:
-        if codes & latin and re.search(r'[\u3040-\u30ff\uac00-\ud7af\u4e00-\u9fff\u0600-\u06ff\u0400-\u04ff]',text):return True
-        if len(text)>=18 and (code:=detect_language(text)) and code not in codes:return True
-    return False
+    issues=[]
+    for field,text in texts:
+        if codes & latin and re.search(r'[\u3040-\u30ff\uac00-\ud7af\u4e00-\u9fff\u0600-\u06ff\u0400-\u04ff]',text):
+            issues.append({'field':field,'detected':'non-Latin script','expected':expected})
+            continue
+        words=re.findall(r'[^\W\d_]+',re.sub(r'```[\s\S]*?```|`[^`]*`|\$[^$]*\$',' ',text).casefold())
+        # Statistical language scores on short technical labels are not reliable evidence.
+        if len(words)<8 and len(set(words) & FOREIGN_WORDS)<2:continue
+        if len(text)>=18 and (code:=detect_language(text)) and code not in codes:
+            issues.append({'field':field,'detected':NAMES.get(code,code),'expected':expected})
+    return issues
 
 
 def instruction(language):

@@ -838,8 +838,9 @@ def propose(state, changes=""):
             )
         if structure(repaired) != structure(normalized):
             raise ValueError('The language correction changed the curriculum structure. Your draft is preserved; retry manually.')
-        if language_rules.plan_mismatch(state['profile'], repaired):
-            raise ValueError('The curriculum still uses the wrong language after one correction. Your draft is preserved; retry manually.')
+        if issues := language_rules.plan_language_issues(state['profile'], repaired):
+            detail = '; '.join(f"{item['field']}: {item['detected']}" for item in issues[:3])
+            raise ValueError(f"The curriculum still uses the wrong language after one correction (expected {language}; {detail}). Your draft is preserved; retry manually.")
         normalized = repaired
         metadata = {**metadata, 'language_repair': repair_metadata}
     validate_track(normalized, track, cramming=cramming)

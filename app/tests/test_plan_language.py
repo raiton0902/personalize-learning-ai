@@ -47,6 +47,41 @@ def test_short_french_outcome_is_detected_for_english_instruction():
     assert language_rules.plan_mismatch({'language': 'English'}, {'objectives': [{'outcome': 'Les bases de la programmation'}]})
 
 
+@pytest.mark.parametrize('title', ['Linear Regression Fundamentals', 'Statistical Model Evaluation', 'Regression Model Diagnostics'])
+def test_english_technical_titles_do_not_trigger_paid_repair(monkeypatch,title):
+    value=plan('advanced_full')
+    value['title']=title
+    value['modules'][0]['title']=title
+    calls=[]
+    def generate(schema,*args):
+        calls.append(1)
+        return schema.model_validate(value).model_dump(),{}
+    monkeypatch.setattr(web_tutor,'generate',generate)
+    web_tutor.propose({'profile':{'goal':'I want to learn statistics','language':'English'},'source':{'id':'general'}})
+    assert len(calls)==1
+
+
+def test_mismatch_diagnostics_identify_field_without_learner_content():
+    issues=language_rules.plan_language_issues({'language':'English'},{'modules':[{'summary':'Les bases de la programmation'}]})
+    assert issues==[{'field':'modules[0].summary','detected':'French','expected':'English'}]
+
+
+def test_biology_goal_with_empty_intake_keeps_english_without_repair(monkeypatch):
+    value=plan('advanced_full')
+    value['title']='Biological Classification'
+    value['modules'][0]['title']='Cellular Organization'
+    calls=[]
+    def generate(schema,*args):
+        calls.append(1)
+        return schema.model_validate(value).model_dump(),{}
+    monkeypatch.setattr(web_tutor,'generate',generate)
+    profile={'goal':'I want to learn biology','language':'automatic'}
+    assert language_rules.resolve(profile)=='English'
+    result,_=web_tutor.propose({'profile':profile,'source':{'id':'general'},'intake':{}})
+    assert result['title']=='Biological Classification'
+    assert len(calls)==1
+
+
 @pytest.mark.parametrize('repair', ['success', 'still_wrong', 'changed_structure'])
 def test_plan_language_repair_is_one_pass_and_preserves_structure(monkeypatch, repair):
     original = plan('advanced_full')
