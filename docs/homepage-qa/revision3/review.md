@@ -1,7 +1,0 @@
-# Clarified controls: final evidence
-
-The independent evidence-only reviewer rechecked the final 39-pass browser report and desktop/phone/preferences captures. It found no remaining evidence-supported failure against the owner's five requirements. Its provisional internal score was 6.8/10 (Design 7, Usability 7, Creativity 6, Content 7). A caption readability observation was addressed by explicitly setting its muted text color. This is not an award or production certification.
-
-Current `interaction-checks.json` records 39 passes and zero errors, including native selection without typing, zero inner choice-input borders, direct disclosure access, the rounded Tailor and circular submit controls, goal retention, reduced motion, and instant jumps at five viewport sizes with normal motion enabled. The 46 existing Python/AppTest tests also pass. Targeted screenshot paths under docs/screenshots/homepage-v3-* reflect the final controls.
-
-The broader `report.json` screenshot sweep reports zero console errors, failed requests and axe violations, visible keyboard focus, no horizontal overflow, idle motion true, reduced-motion hidden text 0 / moving false, and no missing primary hover feedback. It preceded the final instant-scroll timing correction; that behavior is covered by the final targeted browser rerun. Previously documented cold-load layout shift and simulated slow-mobile performance limitations remain open. No inference requests were made.
