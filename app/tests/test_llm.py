@@ -128,8 +128,8 @@ def test_usage_can_be_absent_and_response_redacts_key():
 
 
 @pytest.mark.parametrize('purpose,limit,timeout',[
-    ('connection',512,60),('curriculum',8192,120),('general_curriculum',8192,120),
-    ('lesson',8192,120),('general_lesson',8192,120),('general_assessment',4096,60),
+    ('connection',512,60),('curriculum',32768,600),('general_curriculum',32768,600),
+    ('lesson',32768,600),('general_lesson',32768,600),('general_assessment',4096,60),
     ('repair',4096,60),('question_chat',1536,60),('general_practice',4096,60)])
 def test_purpose_limits_and_timeout(purpose,limit,timeout):
     from types import SimpleNamespace
@@ -143,7 +143,7 @@ def test_purpose_limits_and_timeout(purpose,limit,timeout):
         assert factory.call_args.kwargs['max_retries']==0
 
 
-@pytest.mark.parametrize('limit',[0,-1,True,1.5,8193])
+@pytest.mark.parametrize('limit',[0,-1,True,1.5,32769])
 def test_invalid_output_limits_never_construct_client(limit):
     with patch('llm.OpenAI') as factory:
         with pytest.raises(SetupError):request_model(SETTINGS,[],purpose='curriculum',max_tokens=limit)

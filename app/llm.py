@@ -13,9 +13,9 @@ BASE_URL = "https://api.tokenfactory.nebius.com/v1/"
 ENV_PATH = Path(__file__).with_name(".env")
 MAX_OUTPUT_TOKENS = 512
 REQUEST_TIMEOUT_SECONDS = 60.0
-ABSOLUTE_MAX_OUTPUT_TOKENS = 8192
+ABSOLUTE_MAX_OUTPUT_TOKENS = 32768
 PURPOSE_LIMITS = {
-    'curriculum': (8192, 120.0), 'lesson': (8192, 120.0),
+    'curriculum': (32768, 600.0), 'lesson': (32768, 600.0),
     'assessment': (4096, 60.0), 'diagnostic': (4096, 60.0),
     'repair': (4096, 60.0), 'practice': (4096, 60.0),
     'question_chat': (1536, 60.0), 'learner_question': (1536, 60.0),
