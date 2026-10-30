@@ -13,92 +13,126 @@ pinned: false
 
 # Personal Learning
 
-The approved interface is integrated into a Python-served browser app: real local accounts, saved learning, Library search, Activity dates, document/public-link intake, dark/light themes and the right learning-pattern panel. Motion is limited to guest decoration and icon hover feedback. See [integration setup and limits](docs/INTEGRATION.md) and [change record](CHANGELOG.md).
+An AI tutor that turns a learning goal into an editable curriculum, teaches one lesson at a time, and offers practice, feedback and follow-up conversations. Built with Python Starlette, SQLite and an HTML/CSS/JavaScript interface, using NVIDIA Nemotron through Nebius Token Factory.
 
-**Run the integrated app from this folder:**
+[Open the Hugging Face Space](https://huggingface.co/spaces/Kaizennnn/personal-learning)
+
+## How it works
+
+1. Describe what you want to learn and optionally add references or preferences.
+2. Review the scope form. Optional details can be left blank for a provisional plan.
+3. Review or revise the Beginner → Intermediate → Advanced curriculum, then approve it.
+4. Learn each lesson, ask questions and attempt practice exercises.
+5. Revisit saved lessons and tests, review earlier concepts or download a checkpoint.
+
+Cramming mode prioritizes urgent exam or presentation preparation within your scope and time budget. It does not guarantee readiness.
+
+## Features
+
+- Email/password accounts and optional Google sign-in.
+- Account-owned learning history and follow-up question threads.
+- Searchable Library and date-filtered Activity.
+- Teaching-style, interest, struggle and course-context preferences.
+- Automatic or explicitly selected response language. Language detection does not block curriculum generation or trigger automatic translation requests.
+- Document and public-webpage references, plus reasoning attachments. Audio/video transcription requires a separately configured provider; image OCR depends on the host environment.
+- Markdown code blocks, LaTeX equations, dark/light themes and resizable sidebars.
+- Notebook motion with reduced-motion support.
+- Markdown, Word and PDF checkpoint exports.
+
+General-subject explanations and exercises are model-generated and not independently verified. The bundled algebra sample has a fixed scope and checked questions.
+
+## Run locally on Windows
+
+Use Python 3.12. From the repository root in PowerShell:
+
+```powershell
+python -m venv app/.venv
+.\app\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item app/.env.example app/.env
+```
+
+Copy the example only on a fresh setup; preserve an existing `app/.env`. Edit that private file with your settings:
+
+```dotenv
+NEBIUS_API_KEY=your_private_key
+NEBIUS_MODEL=nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+NEBIUS_ALLOW_LIVE=true
+NEBIUS_BUDGET_USD=5
+NEBIUS_ENABLE_THINKING=false
+COOKIE_SECURE=false
+```
+
+The $5 budget above is an example, not an account balance. Enabling live generation can incur charges. Keep credentials, databases and learner uploads out of Git.
 
 ```powershell
 .\app\.venv\Scripts\python.exe -m uvicorn web_server:app --app-dir app --host 127.0.0.1 --port 8780
 ```
 
-Open [Personal Learning](http://127.0.0.1:8780). Email/password login works locally. Google sign-in needs your OAuth client credentials; video/audio transcription needs a separately configured service. Transcript uploads already work. The integrated app supports general goals/references with model-generated practice; the checked algebra sample remains available.
+Open [localhost:8780](http://127.0.0.1:8780). Keep the terminal running; Ctrl+C stops it. Restart after changing environment settings.
 
-The Streamlit instructions below describe the **preserved legacy build**, not the latest integrated interface.
+Google login requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Register `http://127.0.0.1:8780/auth/google/callback` locally and your deployed HTTPS callback for hosting. `GOOGLE_REDIRECT_URI` or `APP_BASE_URL` can explicitly set the deployed callback/base URL. Use `COOKIE_SECURE=true` on HTTPS deployments.
 
-A local algebra tutor built with Streamlit, SQLite, and NVIDIA Nemotron through Nebius Token Factory. The supported starter course is linear equations, substitution, and points on a line.
+## Hugging Face deployment
 
-The app proposes a small curriculum for approval, teaches one objective, accepts an attempt, asks a diagnostic question when needed, offers repair and a changed checked problem, and saves the next action. Preferences, factual help observations, bounded review, and Markdown checkpoints are included.
+`app/hf_persistence.py` provides the hosted entry point on port 7860, with a Gradio-SDK compatibility wrapper and a Docker launch path. This README's frontmatter configures the Gradio entry point; the Dockerfile starts the same app. Match the deployment method to your Space's SDK settings.
 
-This is a local candidate for user testing. It is not yet a hosted or submission-ready service. See [current QA and limits](docs/LOCAL_QA.md) and the [first-use guide](docs/LOCAL_TEST_GUIDE.md).
+The [GitHub Actions workflow](.github/workflows/sync-huggingface.yml) syncs app/runtime files to `Kaizennnn/personal-learning` on pushes to `main`, or through a manual run. Add a GitHub Actions repository secret named `HF_TOKEN` with write access to that Space.
 
-## Run on Windows
+The workflow preserves the Space's existing README/configuration and does not delete remote files removed from GitHub. This GitHub README therefore does not automatically replace the Space README. A green sync confirms upload; check the Space's build logs and running app separately.
 
-In PowerShell, from the project root:
+Set Nebius, Google and optional transcription credentials in **Space Settings → Secrets**.
 
-```powershell
-cd app
-.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502
-```
+### Persistent data
 
-Open [the local app](http://127.0.0.1:8502). Ctrl+C stops the server. Keep the generated session URL or code to resume. Opening the root URL begins a separate disposable session; it does not expose a directory of learner profiles.
+Accounts, learning history and usage are stored in SQLite under `app/local_results/` by default. Ephemeral hosting disks alone do not preserve these files across rebuilds or restarts.
 
-For a fresh checkout:
-
-```powershell
-cd app
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item .env.example .env
-```
-
-Fill **only the ignored local `.env`** with your key and routing ID:
+The hosted entry point optionally restores and periodically backs up `workspace.sqlite3`, `usage.sqlite3` and `web-session.key` to a private Hugging Face Dataset when both settings are configured:
 
 ```dotenv
-NEBIUS_API_KEY=your_private_key
-NEBIUS_MODEL=nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
-NEBIUS_ALLOW_LIVE=false
+HF_DATASET_REPO=your-account/private-learning-backups
+HF_TOKEN=your_private_dataset_write_token
 ```
 
-Check account billing and agree a budget before setting `NEBIUS_ALLOW_LIVE=true`. The existing local setup has been enabled under the user's $2 development allowance. Never put a real key in `.env.example`, commit it, or paste it into chat. Restart the server after changing credentials/model settings.
+The Dataset must be private. The Space's `HF_TOKEN` secret is separate from the GitHub Actions secret of the same name; scope each token to its intended repositories. Periodic backup is not real-time replication and can lose recent writes after abrupt shutdown. Use a single application instance with this backup design.
 
-The selected model uses the [documented Nebius endpoint](https://docs.tokenfactory.nebius.com/quickstart). Check [billing](https://docs.tokenfactory.nebius.com/other-capabilities/billing-new) and [model structured-output support](https://docs.tokenfactory.nebius.com/ai-models-inference/json) for your own account.
+## Limits and costs
 
-## Tests and cost
+- Curriculum and lesson requests allow up to **32,768 output tokens** with a **600-second timeout**. Other request types have smaller limits; see `app/llm.py`.
+- These are app ceilings, not a guarantee of provider completion or a verified provider maximum. Larger responses can take longer and cost more.
+- `NEBIUS_BUDGET_USD` controls estimated cumulative app usage. The default is **$1** when unset; it is separate from the token ceiling and is not an account-wide Nebius spending cap.
+- Usage estimates depend on model pricing and reported usage. Check Nebius for actual charges. Do not delete the usage database to bypass the allowance.
+- Automatic provider retries are disabled. Invalid curriculum structure or unusable practice content preserves existing work and requires a manual retry.
+- Selected references, preferences and relevant learner responses are sent to Nebius when generating help.
 
-From the project root:
+## Tests
+
+With the development/test dependencies from `app/requirements.txt` installed:
 
 ```powershell
-.\app\.venv\Scripts\python.exe -m pytest -q
+.\app\.venv\Scripts\python.exe -m pytest app/tests -q
 ```
 
-Offline and Streamlit AppTest tests use isolated temporary databases and mocked model transport. They do not contact Nebius. Explicit live probes are separate:
+Tests use isolated databases and mocked inference. Some browser tests require Playwright and Chrome; tooling lives in `frontend_tools/`. Deployment, model quality, Google OAuth and transcription require separate live verification.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `app/web_server.py` | HTTP routes, authentication and learning actions |
+| `app/web/` | Integrated browser interface and content rendering |
+| `app/web_tutor.py`, `app/tutor.py`, `app/schemas.py` | Generation, schemas and curriculum validation |
+| `app/web_store.py`, `app/learning_history.py` | Account storage and lesson/test history |
+| `app/references.py`, `app/reasoning_files.py` | Reference and reasoning-attachment extraction |
+| `app/llm.py`, `app/usage.py` | Model requests, limits and usage controls |
+| `app/hf_persistence.py` | Hosted entry point and optional Dataset backups |
+| `app/tests/` | Offline and browser regression checks |
+
+## Legacy Streamlit build
+
+`app/app.py` preserves the earlier focused algebra tutor. With its dependencies installed, run it separately:
 
 ```powershell
-cd app
-.\.venv\Scripts\python.exe check_nebius.py
-.\.venv\Scripts\python.exe check_nebius.py --live
+.\app\.venv\Scripts\python.exe -m streamlit run app/app.py --server.port 8502
 ```
 
-The second command makes one live request. `live_checks.py --live` runs the nine original constrained probes, skipping checks already recorded locally. Those are smoke checks, not blind accuracy benchmarks.
-
-`usage.py` records local calls against a $2 estimated development allowance. It reserves $0.01 per call until reported usage is available, uses checked rates only for the exact selected Nano route, bounds prompt/schema size to 24 KB and output to 2048 tokens, sets a 60-second timeout, and disables automatic retries. Nano reasoning output is disabled for short course requests. The meter is not an account-wide provider-enforced spending cap and does not cover other apps, playground usage, taxes, hosting, or future rate changes. Do not delete its database to bypass the allowance.
-
-The verified total after the initial build is 22 calls, approximately $0.00317052 in inference. Further use changes that total; check Nebius for actual charges and credit expiry. Raw synthetic test results, profiles, attempts, and usage are in ignored `app/local_results/`.
-
-## Project files
-
-- `app/app.py`: focused staged interface.
-- `app/styles.css` and `app/.streamlit/config.toml`: requested dark layout and local-only server defaults.
-- `app/tutor.py`, `schemas.py`, `content.py`: model workflows, field validation, checked course questions, PDF extraction, and answer checking without eval.
-- `app/storage.py`: isolated session snapshots, attempts, request leases, and stale-tab protection.
-- `app/review.py`, `review_selector.py`: prototype review scheduling and due-topic selection. The selector was reviewed and reused from the user's personal-learning skill workspace.
-- `app/llm.py`, `usage.py`: Nebius requests, safe errors, and estimated development usage.
-- `app/sample_materials/`: original [learner reference](app/sample_materials/course_reference.md) and private-to-tutoring [answer key](app/sample_materials/questions_and_solutions.md). Keep the key out of pre-attempt learner prompts.
-
-## Before inviting testers or publishing
-
-Use non-sensitive disposable profiles. Selected references, preferences, and attempts are sent to Nebius during generation. Anyone with a session URL/code can access that profile on this local installation. It is not public-service authentication. The server binds to 127.0.0.1; do not expose it publicly without implementing the chosen hosted access/storage design.
-
-Review uses prototype scheduling rules, not demonstrated retention. There are only six seed questions; repeat exposure is recorded as weaker evidence than fresh transfer. Randomized placement within a mixed quiz remains pending. Indonesian mathematics checks passed the examples tried, but wording needs a native reader's review. Automated browser PDF attachment was blocked by extension permissions; parsing tests passed, and manual browser verification is still required.
-
-No public deployment, final submission, new Git commit, or push was performed as part of this build. Follow [BUILD_PLAN.md](BUILD_PLAN.md) for remaining team tasks, learner testing, judge access, and submission materials.
+The integrated browser app on port 8780 is the current local development entry point.
