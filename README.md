@@ -17,6 +17,24 @@ An AI tutor that turns a learning goal into an editable curriculum, teaches one 
 
 [Open the Hugging Face Space](https://huggingface.co/spaces/Kaizennnn/personal-learning)
 
+## NVIDIA Nemotron and Nebius Token Factory
+
+The app uses NVIDIA Nemotron through Nebius Token Factory for curriculum proposals, lesson explanations, practice generation, assessment, diagnostic help, repair explanations and follow-up question chats. The setup example selects `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`; the exact deployed model depends on the configured `NEBIUS_MODEL`. An optional `NEBIUS_MODEL_STRONG` routes curriculum, lesson, diagnostic and repair requests to another configured Nemotron model when available.
+
+`app/llm.py` calls Token Factory's OpenAI-compatible endpoint at `https://api.tokenfactory.nebius.com/v1/`. `app/tutor.py` and `app/web_tutor.py` build the teaching instructions and request structured JSON using the schemas in `app/schemas.py` and `app/web_tutor.py`. The backend validates and stores the results before the browser presents the next learning step.
+
+Token Factory accelerated our development workflow by providing hosted model inference through a familiar API: we could work on curriculum structure, prompts, practice feedback and the interface without provisioning GPUs, downloading model weights or operating an inference server. We reused the same client for the app's generation tasks and added request limits and usage tracking around it. This describes development convenience, not a measured inference-speed benchmark.
+
+No model training or fine-tuning is implemented in this repository. Nebius Token Factory is the Nebius service used for inference; hosting is on Hugging Face Spaces, not Nebius compute. References, lesson context and learner preferences are supplied at request time. Generated content remains subject to model errors.
+
+## License and judging
+
+The application code is provided under the [MIT License](LICENSE), an [OSI-approved license](https://opensource.org/license/mit). Bundled third-party libraries and model weights retain their respective licenses.
+
+Repository: https://github.com/raiton0902/personalize-learning-ai
+
+For judging, make sure the repository is public and the hosted Space is accessible. The local setup instructions below allow reviewers to run their own instance with their own Nebius credentials. A private repository link alone will not provide public judging access.
+
 ## How it works
 
 1. Describe what you want to learn and optionally add references or preferences.
