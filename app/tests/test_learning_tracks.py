@@ -100,13 +100,32 @@ def test_explicit_module_resolves_conflicting_membership(conflict):
     assert [m['id'] for m in result['modules'] if first['id'] in m['objective_ids']] == [expected]
 
 
-def test_ambiguous_membership_without_explicit_module_is_rejected():
+def test_ambiguous_membership_without_explicit_module_resolves_deterministically():
     generated = plan('intermediate')
     first = generated['objectives'][0]
     first['module_id'] = ''
     generated['modules'][1]['objective_ids'].append(first['id'])
-    with pytest.raises(ValueError, match='conflicting modules'):
-        web_tutor.normalize_curriculum(generated, {'id': 'general'}, {}, strict_validation=True)
+    result = web_tutor.normalize_curriculum(generated, {'id': 'general'}, {}, strict_validation=True)
+    assert next(o for o in result['objectives'] if o['id'] == first['id'])['module_id'] == 'foundations'
+    assert [m['id'] for m in result['modules'] if first['id'] in m['objective_ids']] == ['foundations']
+
+
+def test_cramming_overlapping_drill_modules_and_mismatched_module_ids_resolve(monkeypatch):
+    generated = plan('advanced_full', cramming=True)
+    # Simulate LLM omitting or mismatching module_id on lessons while repeating earlier lesson IDs in Module 3 (Rapid Drills)
+    all_ids = [o['id'] for o in generated['objectives']]
+    generated['modules'][0]['objective_ids'] = all_ids[:3]
+    generated['modules'][1]['objective_ids'] = all_ids[2:5]
+    generated['modules'][2]['objective_ids'] = list(all_ids)
+    for idx, obj in enumerate(generated['objectives']):
+        obj['module_id'] = f'Module {(idx // 2) + 1}' if idx < 2 else ''
+        obj['module_title'] = ''
+    monkeypatch.setattr(web_tutor, 'generate', lambda schema, *a: (schema.model_validate(generated).model_dump(), {}))
+    result, _ = web_tutor.propose({'profile': {'goal': 'Cram calculus exam', 'cramming': True, 'time_budget': '4 hours'}, 'source': {'id': 'general'}, 'intake': {}})
+    assert [m['level'] for m in result['modules']] == ['Beginner', 'Intermediate', 'Advanced']
+    assert all(m['objective_ids'] for m in result['modules'])
+    seen = [oid for m in result['modules'] for oid in m['objective_ids']]
+    assert len(seen) == len(set(seen)) == len(result['objectives'])
 
 
 def test_invalid_track_shape_rejected_and_old_schema_defaults():

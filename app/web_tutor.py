@@ -427,29 +427,63 @@ def normalize_curriculum(plan, source=None, profile=None, strict_validation=Fals
         mid = str(mod.get("id") or f"module.{m_idx+1}").strip()[:80]
         mtitle = str(mod.get("title") or f"Module {m_idx+1}").strip()[:120]
         msummary = str(mod.get("summary") or "").strip()[:400]
+        level = mod.get('level', 'Beginner')
+        if level == 'Beginner':
+            lower_title = mtitle.lower()
+            if 'advanced' in lower_title or 'high-yield' in lower_title or 'rapid drill' in lower_title:
+                level = 'Advanced'
+            elif 'intermediate' in lower_title or 'standard exam' in lower_title:
+                level = 'Intermediate'
         if mid and mid not in mod_by_id:
-            m_entry = {"id": mid, "title": mtitle, "summary": msummary, "objective_ids": [], "level": mod.get('level', 'Beginner'), "estimated_minutes": mod.get('estimated_minutes', 0)}
+            m_entry = {"id": mid, "title": mtitle, "summary": msummary, "objective_ids": [], "level": level, "estimated_minutes": mod.get('estimated_minutes', 0)}
             modules.append(m_entry)
             mod_by_id[mid] = m_entry
         for oid in mod.get('objective_ids') or []:
-            declared_membership.setdefault(oid, set()).add(mid)
+            oid_str = str(oid or "").strip()
+            if not oid_str:
+                continue
+            members = declared_membership.setdefault(oid_str, [])
+            if mid not in members:
+                members.append(mid)
+
+    def _match_existing_module(raw_mid, raw_mtitle, declared):
+        if raw_mid and raw_mid in mod_by_id:
+            return raw_mid
+        candidates = [mod_by_id[m] for m in declared if m in mod_by_id] or modules
+        if raw_mid:
+            low_id = raw_mid.lower()
+            for m in candidates:
+                if m["id"].lower() == low_id or m["title"].lower() == low_id or str(m.get("level", "")).lower() == low_id:
+                    return m["id"]
+            for m in modules:
+                if m["id"].lower() == low_id or m["title"].lower() == low_id:
+                    return m["id"]
+            idx_match = re.match(r"^(?:mod(?:ule)?[._\-\s]*|m)(\d+)$", low_id) or re.match(r"^(\d+)$", low_id)
+            if idx_match:
+                idx = int(idx_match.group(1)) - 1
+                if 0 <= idx < len(modules):
+                    return modules[idx]["id"]
+        if raw_mtitle:
+            low_title = raw_mtitle.lower()
+            for m in candidates:
+                if m["title"].lower() == low_title or str(m.get("level", "")).lower() == low_title:
+                    return m["id"]
+            for m in modules:
+                if m["title"].lower() == low_title:
+                    return m["id"]
+        if declared:
+            return declared[0]
+        return ""
 
     for obj in normalized_objectives:
         mid = obj["module_id"]
         mtitle = obj["module_title"]
-        declared = declared_membership.get(obj['id'], set())
-        if strict_validation and len(declared) > 1 and mid not in mod_by_id:
-            raise ValueError('The proposed plan assigned a lesson to conflicting modules. Your draft is preserved; retry manually.')
-        if mid in mod_by_id:
-            obj['module_title'] = mod_by_id[mid]['title']
-            mtitle = obj['module_title']
-        if not mid and len(declared) == 1:
-            mid = next(iter(declared))
-            obj['module_id'] = mid
-            obj['module_title'] = mod_by_id[mid]['title']
-        if mid and mid in mod_by_id:
-            if not mtitle:
-                obj["module_title"] = mod_by_id[mid]["title"]
+        declared = declared_membership.get(obj['id'], [])
+        resolved_mid = _match_existing_module(mid, mtitle, declared)
+        if resolved_mid and resolved_mid in mod_by_id:
+            mid = resolved_mid
+            obj["module_id"] = mid
+            obj["module_title"] = mod_by_id[mid]["title"]
             if obj["id"] not in mod_by_id[mid]["objective_ids"]:
                 mod_by_id[mid]["objective_ids"].append(obj["id"])
         elif mid or mtitle:
@@ -495,12 +529,37 @@ def normalize_curriculum(plan, source=None, profile=None, strict_validation=Fals
                         x["module_id"] = m_id
                         x["module_title"] = m_entry["title"]
         else:
-            target_mod = modules[-1]
-            for o in unassigned:
+            empty_mods = [m for m in modules if not m["objective_ids"]]
+            targets = empty_mods if empty_mods else [modules[-1]]
+            for idx_u, o in enumerate(unassigned):
+                target_mod = targets[min(idx_u, len(targets) - 1)]
                 o["module_id"] = target_mod["id"]
                 o["module_title"] = target_mod["title"]
                 if o["id"] not in target_mod["objective_ids"]:
                     target_mod["objective_ids"].append(o["id"])
+
+    if modules and len(normalized_objectives) >= len(modules):
+        obj_by_id = {o["id"]: o for o in normalized_objectives}
+        while any(not m["objective_ids"] for m in modules):
+            e_idx = next(i for i, m in enumerate(modules) if not m["objective_ids"])
+            donor_indices = [i for i, m in enumerate(modules) if len(m["objective_ids"]) > 1]
+            if not donor_indices:
+                break
+            d_idx = min(donor_indices, key=lambda i: abs(i - e_idx))
+            if d_idx < e_idx:
+                for s in range(d_idx, e_idx):
+                    moved_id = modules[s]["objective_ids"].pop()
+                    modules[s + 1]["objective_ids"].insert(0, moved_id)
+                    if moved_id in obj_by_id:
+                        obj_by_id[moved_id]["module_id"] = modules[s + 1]["id"]
+                        obj_by_id[moved_id]["module_title"] = modules[s + 1]["title"]
+            else:
+                for s in range(d_idx, e_idx, -1):
+                    moved_id = modules[s]["objective_ids"].pop(0)
+                    modules[s - 1]["objective_ids"].append(moved_id)
+                    if moved_id in obj_by_id:
+                        obj_by_id[moved_id]["module_id"] = modules[s - 1]["id"]
+                        obj_by_id[moved_id]["module_title"] = modules[s - 1]["title"]
 
     modules = [m for m in modules if m["objective_ids"]]
     for mod in modules:
@@ -745,7 +804,7 @@ def propose(state, changes=""):
         "Show Beginner foundations, Intermediate applied skills/workflows, and Advanced end-to-end implementation upfront. No deferred track choices or extension preview. "
         + ("CRAMMING: use Beginner Core Exam Essentials, Intermediate Standard Exam Problems, Advanced High-Yield Edge Cases & Rapid Drills. Prioritize the specified exam topics and weakest areas, use short 3–20 minute lessons and keep the TOTAL workload within the learner's available time. State that exam readiness is not guaranteed. " if cramming else "") +
         "Organize objectives into modules, with stable IDs, measurable outcomes, rough workload minutes, and core concepts per objective. "
-        "Each lesson's module_id must identify exactly one module, and that module alone must list the lesson ID in objective_ids. "
+        "Each lesson's module_id must identify its single owning module, and each lesson ID must appear in objective_ids of only that one module (do not repeat earlier lesson IDs in later review or drill modules). "
         "If prior_knowledge is present, do not repeat full beginner chapters for those concepts; include a concise bridge in prerequisite_bridges and focus objectives on the target subject's specifics. "
         "When a source is supplied, map each objective's source_sections ONLY to actual inspected_sections from the reference and never invent sections or claim complete coverage of truncated content. "
         "When source.id is 'general', set grounding_status='unverified_general' and state that alignment is unverified. "

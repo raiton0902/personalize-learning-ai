@@ -15,7 +15,7 @@ def detect_language(text):
     if re.search(r'\b(?:i want to|i would like to|teach me|explain .+ to me|why is|how do|how can|introduce .+ programming)\b',text,re.I):return 'en'
     foreign_words={'le','la','les','des','une','pour','avec','je','nous','quiero','aprender','historia','el','los','las','der','die','das','ich','und','ik','wil','leren','quero','uma','gli','della'}
     if text.isascii() and not words & foreign_words:
-        if words & {'the','a','an','and','to','in','with','from','for','of','can','apply','learn','understand','write','practice'}:return 'en'
+        if words & {'the','a','an','and','to','in','with','from','for','of','can','apply','learn','understand','write','practice','exam'}:return 'en'
         if re.search(r'\b(?:japanese|chinese|korean|french|german|russian)\s+(?:history|culture|philosophy|war|language)\b',text,re.I):return 'en'
         if words and len(re.findall(r'[^\W\d_]',text))<18:return 'en'
     if len(re.findall(r'[^\W\d_]',text))<18:return None

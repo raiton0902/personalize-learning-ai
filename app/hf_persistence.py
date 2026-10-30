@@ -22,6 +22,26 @@ from pathlib import Path
 from typing import Callable
 
 ROOT = Path(__file__).parent
+os.environ["GRADIO_SSR_MODE"] = "false"
+
+try:
+    import spaces as _hf_spaces
+except Exception:
+    _hf_spaces = None
+
+
+def _gpu_decorator(fn):
+    if _hf_spaces is not None and hasattr(_hf_spaces, "GPU"):
+        try:
+            return _hf_spaces.GPU(fn)
+        except Exception:
+            return fn
+    return fn
+
+
+@_gpu_decorator
+def zero_gpu_health(status: str = "ready") -> str:
+    return status
 
 
 def tracked_files() -> dict[str, Path]:
@@ -201,7 +221,70 @@ class PersistenceSync:
         return uploaded
 
 
+def _is_gradio_internal_path(path: str) -> bool:
+    return path in {"/config", "/info", "/theme.css", "/robots.txt"} or path.startswith(
+        ("/gradio_api/", "/queue/", "/heartbeat/", "/file=", "/assets/index-")
+    )
+
+
+class _StarletteOverlayMiddleware:
+    def __init__(self, app, starlette_app):
+        self.app = app
+        self.starlette_app = starlette_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            path = scope.get("path", "/")
+            if not _is_gradio_internal_path(path):
+                headers = dict(scope.get("headers") or [])
+                proto = headers.get(b"x-forwarded-proto", b"").decode("latin1").split(",")[0].strip()
+                if proto in {"http", "https"}:
+                    scope = dict(scope, scheme=proto)
+                await self.starlette_app(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
+def _run_zerogpu_in_process(port: int) -> int:
+    os.environ["GRADIO_SSR_MODE"] = "false"
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    os.chdir(ROOT)
+    import inspect
+    import gradio as gr
+    import web_server
+
+    with gr.Blocks() as demo:
+        inp = gr.Textbox(value="ready", visible=False)
+        out = gr.Textbox(visible=False)
+        btn = gr.Button("check", visible=False)
+        btn.click(fn=zero_gpu_health, inputs=inp, outputs=out)
+
+    launch_kwargs = {
+        "server_name": "0.0.0.0",
+        "server_port": int(port),
+        "prevent_thread_lock": True,
+        "quiet": True,
+    }
+    if "ssr_mode" in inspect.signature(demo.launch).parameters:
+        launch_kwargs["ssr_mode"] = False
+
+    app, _, _ = demo.launch(**launch_kwargs)
+    if getattr(app, "middleware_stack", None) is None and hasattr(app, "build_middleware_stack"):
+        app.middleware_stack = app.build_middleware_stack()
+    app.middleware_stack = _StarletteOverlayMiddleware(app.middleware_stack, web_server.app)
+
+    stop = threading.Event()
+    signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    signal.signal(signal.SIGINT, lambda *_: stop.set())
+    stop.wait()
+    return 0
+
+
 def serve() -> int:
+    if os.getenv("SPACE_ID") or os.getenv("RENDER"):
+        os.environ.setdefault("COOKIE_SECURE", "true")
+
     sync = PersistenceSync.from_env()
     sync.restore_all()
 
@@ -216,10 +299,17 @@ def serve() -> int:
     if sync.enabled:
         worker.start()
 
-    port = os.getenv("PORT", "7860")
+    port = int(os.getenv("PORT", "7860"))
+    if _hf_spaces is not None and os.getenv("SPACE_ID"):
+        try:
+            return _run_zerogpu_in_process(port)
+        finally:
+            stop_event.set()
+            if sync.enabled:
+                worker.join(timeout=5)
+                sync.sync_once(force=True)
+
     env = os.environ.copy()
-    if env.get("SPACE_ID"):
-        env.setdefault("COOKIE_SECURE", "true")
     cmd = [
         sys.executable,
         "-m",

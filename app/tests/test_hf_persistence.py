@@ -163,3 +163,29 @@ def test_web_server_account_survives_simulated_space_sleep(monkeypatch, tmp_path
         assert body["user"]["email"] == "hf-learner@example.com"
         assert body["user"]["profile"]["interest"] == "Robotics"
 
+
+def test_starlette_overlay_middleware_routes_app_and_gradio_paths(monkeypatch, tmp_path):
+    from starlette.applications import Starlette
+    from starlette.responses import JSONResponse
+    from starlette.routing import Route
+    from starlette.testclient import TestClient
+    import web_server
+
+    monkeypatch.setenv("WEB_DB", str(tmp_path / "overlay.sqlite3"))
+    monkeypatch.setenv("WEB_SESSION_SECRET", "overlay-test-secret")
+
+    fake_gradio = Starlette(routes=[Route("/config", lambda r: JSONResponse({"gradio": True}))])
+    fake_gradio.middleware_stack = hf_persistence._StarletteOverlayMiddleware(
+        fake_gradio.build_middleware_stack(),
+        web_server.app,
+    )
+
+    with TestClient(fake_gradio) as client:
+        cfg = client.get("/config")
+        assert cfg.status_code == 200
+        assert cfg.json() == {"gradio": True}
+
+        me = client.get("/api/me")
+        assert me.status_code == 200
+        assert "capabilities" in me.json()
+

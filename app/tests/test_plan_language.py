@@ -40,6 +40,7 @@ def test_japanese_requested_language_is_respected():
 
 def test_short_english_curriculum_title_is_not_foreign_drift():
     assert not language_rules.plan_mismatch({'language': 'English'}, {'title': 'Intermediate practice'})
+    assert not language_rules.plan_mismatch({'language': 'English'}, {'modules': [{'title': 'Core Exam Essentials'}]})
 
 
 def test_short_french_outcome_is_detected_for_english_instruction():

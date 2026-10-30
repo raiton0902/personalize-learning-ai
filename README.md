@@ -4,8 +4,10 @@ emoji: 📘
 colorFrom: blue
 colorTo: red
 sdk: gradio
+python_version: "3.12"
 app_file: app/hf_persistence.py
 app_port: 7860
+ssr_mode: false
 pinned: false
 ---
 
