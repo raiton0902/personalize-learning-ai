@@ -1,0 +1,29 @@
+name: Sync app to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+      - uses: huggingface/hub-sync@v0.3.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: Kaizennnn/personal-learning
+          hf_token: ${{ secrets.HF_TOKEN }}
+          space_sdk: docker
+          delete_removed: 'false'
+          include: |
+            app/**
+            Dockerfile
+            requirements.txt
+            packages.txt
