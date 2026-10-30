@@ -1,5 +1,9 @@
 # UI feature provenance and adoption decisions
 
+## Current handoff — 2026-10-30.15 (30 October 2026)
+
+Reviewed for revision 2026-10-30.15 (OWNER request for free zero-rewrite Python deployment via Hugging Face Spaces Docker + Private HF Dataset SQLite sync). Added `Dockerfile`, `.dockerignore`, `app/hf_persistence.py`, `app/tests/test_hf_persistence.py` and `docs/INTEGRATION.md` guidance without altering any UI design, visual assets or P01–P35 provenance decisions; no substantive update needed. Verification in CHANGELOG.
+
 ## Current handoff — 2026-10-30.14 (30 October 2026)
 
 OWNER Plan/P32/V08: following the supplied bug brief, replace orphan full-size plan outcomes with compact 13px bullet targets after scope; use matching bullets inside module lesson cards. Retain rich Markdown/math rendering and apply identically to ordinary and Cramming plans. No new visual direction or dependency. The owner's language correction explicitly permits one structure-preserving, budget-controlled repair for a drifted non-bundled proposal; country/culture subject matter must not change instruction language. Other provenance reviewed unchanged; verification in CHANGELOG.

@@ -1,5 +1,12 @@
 # Change record
 
+## 2026-10-30 — Prepare Hugging Face Spaces Docker deployment with private Dataset SQLite sync (2026-10-30.15)
+
+- Added root `Dockerfile` (non-root `uid=1000`, port `7860`, `ffmpeg`, `fonts-dejavu-core`, `huggingface_hub`) and `.dockerignore` (excluding `.env`, `app/.env`, `app/.venv`, `app/local_results`, `*.sqlite3`, `*.key`, tests and preview artifacts so private data and credentials are never baked into an image).
+- Added `app/hf_persistence.py` entrypoint wrapper that restores `workspace.sqlite3`, `usage.sqlite3` and `web-session.key` from a private Hugging Face Dataset (`HF_DATASET_REPO`, `HF_TOKEN`) before starting Uvicorn (`--proxy-headers --forwarded-allow-ips=*`), and periodically backs up changed files using `sqlite3.Connection.backup` online snapshots and SHA-256 digests, plus a final flush on `SIGTERM`/`SIGINT`. Leaves local disk behavior unchanged when `HF_DATASET_REPO` or `HF_TOKEN` is unset. Existing application code (`app/web_server.py`, `app/web_store.py`, `app/web_tutor.py`, `app/web/` and `app/app.py`) is untouched.
+- Added offline test suite `app/tests/test_hf_persistence.py` and documented setup in `docs/INTEGRATION.md`. Synchronized all three handoff files (`2026-10-30.15`).
+- Verification: `app/tests/test_hf_persistence.py` **4 passed (1.29s)**, covering unset-env no-op, online SQLite snapshot/restore roundtrip, SHA-256 deduplication, corrupt-snapshot rejection without overwriting local files, and end-to-end `web_server.app` signup/profile/cookie survival across simulated ephemeral disk reset. No paid API calls, `.env` or private database inspection, deployment or Git push. Actual Hugging Face Space creation, private dataset sync and live provider inference remain unverified until the owner configures their Hugging Face account secrets and pushes.
+
 ## 2026-10-30 — Prevent curriculum language drift and compact learner targets (2026-10-30.14)
 
 - Separated response language from country/culture/language subject matter in system and user prompts. Detect short CJK script and inspect all requested plan fields, including module titles/summaries; Latin-target plans reject CJK/Arabic/Cyrillic regardless of field length. Short English country goals and curriculum labels avoid known detector false positives.

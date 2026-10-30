@@ -134,3 +134,31 @@ Main goal matching strips introductory/request wording while retaining subject/o
 Lesson history records each visited objective and repeated practice instance, including submitted answers, feedback and repair. Review is read-only and does not change the current objective, approval or completion status. Unsubmitted/diagnostic practice solutions are redacted. Old Library notes with course ownership metadata and existing attempts can be displayed; missing past content is not invented. Checkpoint exports include saved lesson explanations/examples but continue to exclude practice/chat logs. The standalone legacy Streamlit workflow remains available.
 
 New goal submission intentionally moves directly to a learning-generation screen with Thinking, superseding the earlier stay-on-Home behavior for this one action. Ordinary saved-course navigation still keeps its source view until loaded. Failed generation leaves explicit retry/back actions; no automatic paid retry occurs. `frontend_tools/learning-progress-check.mjs` covers the new browser flow with real local routes/storage and deterministic model fixtures.
+
+## Hugging Face Spaces (Docker Free) + Private Dataset SQLite Sync — 30 October 2026
+
+Root `Dockerfile`, `.dockerignore` and `app/hf_persistence.py` package the integrated browser application (`app/web_server.py` + `app/web/`) for Hugging Face Spaces (`CPU Basic` free Docker runtime, port `7860`) without rewriting any Python routes, schemas or frontend scripts.
+
+### How persistence works across container sleep
+
+Free Hugging Face Spaces sleep after roughly 48 hours of inactivity and reset their local container disk on restart. When `HF_DATASET_REPO` and `HF_TOKEN` are configured in the Space's **Variables and secrets**:
+
+1. **Startup restore (`restore_all`):** Before launching Uvicorn, `app/hf_persistence.py` downloads `workspace.sqlite3`, `usage.sqlite3` and `web-session.key` from your **Private Hugging Face Dataset** repository into `app/local_results/` (verifying `PRAGMA integrity_check` on SQLite files before activating them).
+2. **Online atomic snapshots (`sync_once`):** Every `HF_SYNC_INTERVAL_SECONDS` (default `15` seconds) and on `SIGTERM` shutdown, `app/hf_persistence.py` uses SQLite's online backup API (`sqlite3.Connection.backup`) to copy a consistent snapshot and uploads only files whose SHA-256 digest changed.
+3. **Zero local impact:** When `HF_DATASET_REPO` or `HF_TOKEN` is unset, `hf_persistence.py` leaves local disk behavior unchanged.
+
+### Required manual setup on Hugging Face (needs your account)
+
+1. Create a **Private Dataset** on Hugging Face (for example, `<your-username>/personal-learning-data`). Keep it **Private** so learner databases and session keys are never public.
+2. Create a Hugging Face **User Access Token** (Fine-grained with Read and Write permissions to that private dataset repository).
+3. Create a new **Space** on Hugging Face, select **Docker** as the Space SDK (choose the **Blank** Docker template and **CPU basic · Free** hardware).
+4. In the Space's **Settings -> Variables and secrets**, add these **Secrets**:
+   - `HF_TOKEN`: your write-capable Hugging Face token
+   - `HF_DATASET_REPO`: `<your-username>/personal-learning-data`
+   - `NEBIUS_API_KEY`: your Nebius API key
+   - `NEBIUS_ALLOW_LIVE`: `true` (only when you want live paid model calls enabled)
+   - `NEBIUS_BUDGET_USD`: `1` (or your chosen USD budget ceiling)
+   - `NEBIUS_MODEL`: your configured Nebius model slug
+   - *(Optional)* `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `WEB_SESSION_SECRET`
+5. Share the **Direct Space URL** (`https://<your-username>-<space-name>.hf.space`) with your users rather than the embedded `huggingface.co/spaces/...` wrapper page so first-party `SameSite=Lax` cookies (`COOKIE_SECURE=true`) work across browsers.
+6. Note: Linux containers do not include Windows PowerShell WinRT OCR (`Windows.Media.Ocr`); image reasoning uploads on Linux return the existing prompt to upload Markdown, text PDF or DOCX instead.

@@ -1,5 +1,9 @@
 # Unrealized changes and exact interface handoff
 
+## Current handoff — 2026-10-30.15 (30 October 2026)
+
+Reviewed for revision 2026-10-30.15 (Hugging Face Spaces Docker packaging `Dockerfile`, `.dockerignore`, `app/hf_persistence.py` and `app/tests/test_hf_persistence.py`). No UI, V01–V09, U01–U23 or B01–B07 behavioral contracts changed; no substantive update needed. Remote Hugging Face Space creation, secret provisioning and git push remain owner-performed steps. Verification in CHANGELOG.
+
 ## Current handoff — 2026-10-30.14 (30 October 2026)
 
 LIVE OWNER U19/B01–B07: country or language subject matter must never select the instruction language. All plan title/scope/module title+summary/objective title+outcome fields are checked, including short non-Latin script. A non-bundled proposal with detected drift may use exactly one budget-controlled language repair; this is the owner's narrow exception to the older no-automatic-retry policy. Structure and identifiers must survive unchanged; a failed repair preserves the draft and requires manual action. No fallback or transport retry was added. Existing stored plans remain untouched until an explicit generation action; provider accuracy is not live-verified.
